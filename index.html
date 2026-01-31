@@ -36,6 +36,14 @@
 
       <section class="controls">
         <div class="control-group">
+          <label for="sceneSelect">Scene</label>
+          <select id="sceneSelect">
+            <option value="park">Sunny Park</option>
+            <option value="beach">Golden Beach</option>
+            <option value="city">City Streets</option>
+            <option value="meadow">Wild Meadow</option>
+          </select>
+          <button id="unlockSceneBtn" class="ghost">Unlock</button>
           <label for="modeSelect">Mode</label>
           <select id="modeSelect">
             <option value="easy">Easy</option>
@@ -44,6 +52,7 @@
           </select>
           <button id="startBtn" class="primary">Start</button>
           <button id="hintBtn" class="ghost">Hint (5 gems)</button>
+          <button id="fullscreenBtn" class="ghost">Fullscreen</button>
         </div>
         <div class="control-group upgrades">
           <div class="upgrade-card">
@@ -81,6 +90,7 @@
             The magnifier follows your mouse, or your finger when you touch and
             hold.
           </li>
+          <li>Unlock new scenes with gems to play them.</li>
           <li>Easy: 1 minute 15 seconds, 1 gem per find.</li>
           <li>Medium: 45 seconds, 5 gems per find.</li>
           <li>Hard: 25 seconds, 10 gems per find.</li>

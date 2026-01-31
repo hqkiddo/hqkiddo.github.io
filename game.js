@@ -7,8 +7,11 @@ const foundCountEl = document.getElementById("foundCount");
 const targetNameEl = document.getElementById("targetName");
 const statusMessageEl = document.getElementById("statusMessage");
 const modeSelect = document.getElementById("modeSelect");
+const sceneSelect = document.getElementById("sceneSelect");
+const unlockSceneBtn = document.getElementById("unlockSceneBtn");
 const startBtn = document.getElementById("startBtn");
 const hintBtn = document.getElementById("hintBtn");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
 const magnifierLevelEl = document.getElementById("magnifierLevel");
 const clarityLevelEl = document.getElementById("clarityLevel");
 const upgradeMagnifierBtn = document.getElementById("upgradeMagnifierBtn");
@@ -42,7 +45,49 @@ const itemTemplates = [
   { name: "Kite", type: "kite", color: "#00bbf9" },
   { name: "Camera", type: "camera", color: "#5d6a82" },
   { name: "Shell", type: "shell", color: "#f7a072" },
+  { name: "Backpack", type: "backpack", color: "#3d5a80" },
+  { name: "Clock", type: "clock", color: "#e0fbfc" },
+  { name: "Flower", type: "flower", color: "#ffafcc" },
+  { name: "Bottle", type: "bottle", color: "#7bdff2" },
+  { name: "Key", type: "key", color: "#f4c430" },
+  { name: "Leaf", type: "leaf", color: "#80ed99" },
+  { name: "Cup", type: "cup", color: "#ffd6a5" },
 ];
+
+const sceneThemes = {
+  park: {
+    id: "park",
+    name: "Sunny Park",
+    cost: 0,
+    skyTop: "#7ec9ff",
+    skyBottom: "#dff3ff",
+    ground: "#96d38c",
+  },
+  beach: {
+    id: "beach",
+    name: "Golden Beach",
+    cost: 25,
+    skyTop: "#8bd3ff",
+    skyBottom: "#ffe6b3",
+    ground: "#f6d3a0",
+  },
+  city: {
+    id: "city",
+    name: "City Streets",
+    cost: 35,
+    skyTop: "#9bb6ff",
+    skyBottom: "#e5efff",
+    ground: "#c4c4cf",
+  },
+  meadow: {
+    id: "meadow",
+    name: "Wild Meadow",
+    cost: 20,
+    skyTop: "#89d4ff",
+    skyBottom: "#f8f2e5",
+    ground: "#a4e3a1",
+  },
+};
 
 let items = [];
 let gems = 0;
@@ -55,6 +100,8 @@ let hintUntil = 0;
 let magnifierLevel = 0;
 let clarityLevel = 0;
 let pointer = { x: sceneWidth / 2, y: sceneHeight / 2 };
+let currentScene = sceneThemes.park;
+const unlockedScenes = new Set(["park"]);
 
 function setStatus(message) {
   statusMessageEl.textContent = message;
@@ -78,6 +125,23 @@ function updateUI() {
   upgradeMagnifierBtn.disabled = !nextMagCost || gems < nextMagCost;
   upgradeClarityBtn.disabled = !nextPicCost || gems < nextPicCost;
   hintBtn.disabled = !running || gems < hintCost;
+
+  Array.from(sceneSelect.options).forEach((option) => {
+    const scene = sceneThemes[option.value];
+    const locked = !unlockedScenes.has(scene.id);
+    option.textContent = locked
+      ? `${scene.name} (${scene.cost} gems)`
+      : scene.name;
+  });
+
+  const selectedScene = sceneThemes[sceneSelect.value];
+  const isUnlocked = unlockedScenes.has(selectedScene.id);
+  if (isUnlocked) {
+    unlockSceneBtn.textContent = "Unlocked";
+  } else {
+    unlockSceneBtn.textContent = `Unlock (${selectedScene.cost})`;
+  }
+  unlockSceneBtn.disabled = isUnlocked || gems < selectedScene.cost;
 }
 
 function randomBetween(min, max) {
@@ -112,7 +176,7 @@ function placeItem(base, size, existing) {
 function generateScene() {
   const shuffled = shuffle(itemTemplates);
   items = [];
-  const count = 9;
+  const count = 12;
   for (let i = 0; i < count; i += 1) {
     const template = shuffled[i % shuffled.length];
     const size = randomBetween(20, 34);
@@ -145,6 +209,13 @@ function pickNextTarget() {
 
 function startGame() {
   const mode = modes[modeSelect.value];
+  const selectedScene = sceneThemes[sceneSelect.value];
+  if (!unlockedScenes.has(selectedScene.id)) {
+    setStatus("Unlock this scene to play it.");
+    updateUI();
+    return;
+  }
+  currentScene = selectedScene;
   timeLeft = mode.time;
   found = 0;
   running = true;
@@ -274,6 +345,29 @@ function handleHint() {
   updateUI();
 }
 
+function unlockScene() {
+  const selectedScene = sceneThemes[sceneSelect.value];
+  if (unlockedScenes.has(selectedScene.id)) {
+    return;
+  }
+  if (gems < selectedScene.cost) {
+    setStatus("Not enough gems to unlock.");
+    return;
+  }
+  gems -= selectedScene.cost;
+  unlockedScenes.add(selectedScene.id);
+  setStatus(`${selectedScene.name} unlocked!`);
+  updateUI();
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
 function upgradeMagnifier() {
   const cost = magnifierCosts[magnifierLevel];
   if (!cost || gems < cost) {
@@ -296,27 +390,189 @@ function upgradeClarity() {
   updateUI();
 }
 
-function drawBackground() {
+function drawSky(theme) {
   const gradient = ctx.createLinearGradient(0, 0, 0, sceneHeight);
-  gradient.addColorStop(0, "#87c5ff");
-  gradient.addColorStop(1, "#f9f0d6");
+  gradient.addColorStop(0, theme.skyTop);
+  gradient.addColorStop(1, theme.skyBottom);
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, sceneWidth, sceneHeight);
 
-  ctx.fillStyle = "#b4e4b7";
+  ctx.fillStyle = "rgba(255,255,255,0.7)";
+  for (let i = 0; i < 6; i += 1) {
+    const x = 90 + i * 140;
+    const y = 70 + (i % 2) * 26;
+    ctx.beginPath();
+    ctx.ellipse(x, y, 56, 24, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + 42, y + 10, 42, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawMountains() {
+  ctx.fillStyle = "rgba(90, 120, 150, 0.35)";
   ctx.beginPath();
-  ctx.ellipse(150, 460, 220, 120, 0, 0, Math.PI * 2);
-  ctx.ellipse(600, 520, 300, 140, 0, 0, Math.PI * 2);
+  ctx.moveTo(0, 320);
+  ctx.lineTo(180, 180);
+  ctx.lineTo(360, 320);
+  ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
-  for (let i = 0; i < 5; i += 1) {
-    const x = 120 + i * 150;
-    const y = 80 + (i % 2) * 30;
+  ctx.fillStyle = "rgba(70, 100, 130, 0.4)";
+  ctx.beginPath();
+  ctx.moveTo(240, 330);
+  ctx.lineTo(440, 170);
+  ctx.lineTo(660, 330);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawGround(theme) {
+  ctx.fillStyle = theme.ground;
+  ctx.beginPath();
+  ctx.ellipse(160, 460, 240, 120, 0, 0, Math.PI * 2);
+  ctx.ellipse(600, 520, 340, 150, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawWater() {
+  const gradient = ctx.createLinearGradient(0, 360, 0, sceneHeight);
+  gradient.addColorStop(0, "rgba(120, 196, 255, 0.9)");
+  gradient.addColorStop(1, "rgba(60, 130, 200, 0.9)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 360, sceneWidth, sceneHeight);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  for (let y = 380; y < sceneHeight; y += 22) {
     ctx.beginPath();
-    ctx.ellipse(x, y, 50, 22, 0, 0, Math.PI * 2);
-    ctx.ellipse(x + 40, y + 8, 38, 18, 0, 0, Math.PI * 2);
+    ctx.moveTo(40, y);
+    ctx.quadraticCurveTo(160, y - 6, 280, y);
+    ctx.stroke();
+  }
+}
+
+function drawCity() {
+  ctx.fillStyle = "#5d6478";
+  ctx.fillRect(40, 240, 120, 180);
+  ctx.fillRect(190, 210, 80, 210);
+  ctx.fillRect(290, 260, 140, 160);
+  ctx.fillRect(460, 220, 120, 200);
+  ctx.fillRect(610, 250, 160, 170);
+
+  ctx.fillStyle = "rgba(255,255,200,0.6)";
+  for (let x = 60; x < 760; x += 50) {
+    for (let y = 260; y < 380; y += 40) {
+      ctx.fillRect(x, y, 18, 14);
+    }
+  }
+}
+
+function drawCityDetails() {
+  ctx.fillStyle = "#2b2f3a";
+  ctx.fillRect(0, 420, sceneWidth, 130);
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(40, 485);
+  ctx.lineTo(220, 485);
+  ctx.moveTo(300, 485);
+  ctx.lineTo(480, 485);
+  ctx.moveTo(560, 485);
+  ctx.lineTo(740, 485);
+  ctx.stroke();
+
+  ctx.fillStyle = "#4a4f5c";
+  ctx.fillRect(100, 380, 80, 40);
+  ctx.fillRect(520, 380, 120, 40);
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+  ctx.fillRect(130, 388, 20, 16);
+  ctx.fillRect(570, 388, 20, 16);
+  ctx.fillRect(600, 388, 20, 16);
+}
+
+function drawBeach() {
+  ctx.fillStyle = "rgba(246, 211, 160, 0.9)";
+  ctx.fillRect(0, 360, sceneWidth, sceneHeight);
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  for (let i = 0; i < 8; i += 1) {
+    ctx.beginPath();
+    ctx.ellipse(80 + i * 110, 420 + (i % 2) * 18, 40, 12, 0, 0, Math.PI * 2);
     ctx.fill();
+  }
+}
+
+function drawBeachDetails() {
+  ctx.strokeStyle = "rgba(255,255,255,0.5)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, 360);
+  ctx.bezierCurveTo(200, 380, 420, 340, 640, 365);
+  ctx.lineTo(sceneWidth, 350);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+  ctx.beginPath();
+  ctx.arc(780, 90, 40, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawTreesLine() {
+  ctx.fillStyle = "#5a7d4c";
+  for (let i = 0; i < 7; i += 1) {
+    const x = 60 + i * 120;
+    ctx.beginPath();
+    ctx.arc(x, 330, 30, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x - 6, 330, 12, 40);
+  }
+}
+
+function drawParkDetails() {
+  ctx.fillStyle = "rgba(120, 90, 60, 0.9)";
+  ctx.beginPath();
+  ctx.moveTo(0, 470);
+  ctx.quadraticCurveTo(200, 420, 420, 460);
+  ctx.quadraticCurveTo(640, 500, sceneWidth, 450);
+  ctx.lineTo(sceneWidth, sceneHeight);
+  ctx.lineTo(0, sceneHeight);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#b07a48";
+  ctx.fillRect(120, 360, 60, 20);
+  ctx.fillRect(120, 380, 8, 30);
+  ctx.fillRect(172, 380, 8, 30);
+}
+
+function drawMeadowDetails() {
+  ctx.fillStyle = "rgba(255, 182, 193, 0.7)";
+  for (let i = 0; i < 12; i += 1) {
+    const x = 50 + i * 70;
+    const y = 420 + (i % 3) * 22;
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawBackground() {
+  drawSky(currentScene);
+  drawMountains();
+  if (currentScene.id === "beach") {
+    drawBeach();
+    drawWater();
+    drawBeachDetails();
+  } else if (currentScene.id === "city") {
+    drawGround(currentScene);
+    drawCity();
+    drawCityDetails();
+  } else {
+    drawGround(currentScene);
+    drawTreesLine();
+    if (currentScene.id === "park") {
+      drawParkDetails();
+    } else {
+      drawMeadowDetails();
+    }
   }
 }
 
@@ -465,6 +721,66 @@ function drawItem(item) {
       ctx.strokeStyle = "rgba(255,255,255,0.6)";
       ctx.stroke();
       break;
+    case "backpack":
+      ctx.fillRect(-18, -14, 36, 36);
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.fillRect(-12, -10, 24, 18);
+      break;
+    case "clock":
+      ctx.beginPath();
+      ctx.arc(0, 0, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#223";
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, -10);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(8, 4);
+      ctx.stroke();
+      break;
+    case "flower":
+      ctx.beginPath();
+      for (let i = 0; i < 6; i += 1) {
+        ctx.ellipse(
+          Math.cos((i * Math.PI) / 3) * 10,
+          Math.sin((i * Math.PI) / 3) * 10,
+          6,
+          12,
+          0,
+          0,
+          Math.PI * 2
+        );
+      }
+      ctx.fill();
+      ctx.fillStyle = "#ffd166";
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case "bottle":
+      ctx.fillRect(-8, -20, 16, 32);
+      ctx.fillRect(-4, -28, 8, 8);
+      break;
+    case "key":
+      ctx.beginPath();
+      ctx.arc(-10, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(-2, -2, 24, 6);
+      ctx.fillRect(12, 4, 6, 6);
+      ctx.fillRect(18, 4, 6, 6);
+      break;
+    case "leaf":
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 10, 18, Math.PI / 6, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case "cup":
+      ctx.fillRect(-14, -10, 28, 20);
+      ctx.strokeStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath();
+      ctx.arc(16, 0, 8, -Math.PI / 2, Math.PI / 2);
+      ctx.stroke();
+      break;
     default:
       ctx.beginPath();
       ctx.arc(0, 0, 16, 0, Math.PI * 2);
@@ -527,6 +843,9 @@ canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
 canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
 startBtn.addEventListener("click", startGame);
 hintBtn.addEventListener("click", handleHint);
+unlockSceneBtn.addEventListener("click", unlockScene);
+sceneSelect.addEventListener("change", updateUI);
+fullscreenBtn.addEventListener("click", toggleFullscreen);
 upgradeMagnifierBtn.addEventListener("click", upgradeMagnifier);
 upgradeClarityBtn.addEventListener("click", upgradeClarity);
 

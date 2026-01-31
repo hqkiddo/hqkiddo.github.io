@@ -114,6 +114,18 @@ button.ghost {
   border-color: rgba(255, 255, 255, 0.4);
 }
 
+#fullscreenBtn {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+#sceneSelect {
+  min-width: 160px;
+}
+
+#unlockSceneBtn {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
 .upgrades {
   gap: 10px;
 }

@@ -226,6 +226,8 @@ let chanceAngle = 0;
 let isChanceSpinning = false;
 let magnifierShape = "circle";
 const unlockedShapes = new Set(["circle"]);
+let wheelSelectedIndex = null;
+let chanceSelectedIndex = null;
 
 function setStatus(message) {
   statusMessageEl.textContent = message;
@@ -696,6 +698,19 @@ function drawWheel() {
   wheelCtx.beginPath();
   wheelCtx.arc(0, 0, 24, 0, Math.PI * 2);
   wheelCtx.fill();
+
+  if (wheelSelectedIndex !== null) {
+    wheelCtx.save();
+    const angle = wheelSelectedIndex * slice + slice / 2;
+    wheelCtx.rotate(angle);
+    wheelCtx.strokeStyle = "#ffffff";
+    wheelCtx.lineWidth = 4;
+    wheelCtx.beginPath();
+    wheelCtx.moveTo(0, 0);
+    wheelCtx.lineTo(radius - 10, 0);
+    wheelCtx.stroke();
+    wheelCtx.restore();
+  }
   wheelCtx.restore();
 }
 
@@ -739,6 +754,19 @@ function drawChanceWheel() {
   chanceCtx.beginPath();
   chanceCtx.arc(0, 0, 24, 0, Math.PI * 2);
   chanceCtx.fill();
+
+  if (chanceSelectedIndex !== null) {
+    chanceCtx.save();
+    const angle = chanceSelectedIndex * slice + slice / 2;
+    chanceCtx.rotate(angle);
+    chanceCtx.strokeStyle = "#ffffff";
+    chanceCtx.lineWidth = 4;
+    chanceCtx.beginPath();
+    chanceCtx.moveTo(0, 0);
+    chanceCtx.lineTo(radius - 10, 0);
+    chanceCtx.stroke();
+    chanceCtx.restore();
+  }
   chanceCtx.restore();
 }
 
@@ -831,6 +859,7 @@ function spinChanceWheel() {
     isChanceSpinning = false;
     const normalized = (Math.PI * 2 - (chanceAngle % (Math.PI * 2))) % (Math.PI * 2);
     const index = Math.floor(normalized / slice) % chancePrizes.length;
+    chanceSelectedIndex = index;
     applyChancePrize(chancePrizes[index]);
   }
 
@@ -871,6 +900,7 @@ function spinWheel() {
     isSpinning = false;
     const normalized = (Math.PI * 2 - (wheelAngle % (Math.PI * 2))) % (Math.PI * 2);
     const index = Math.floor(normalized / slice) % wheelPrizes.length;
+    wheelSelectedIndex = index;
     applyPrize(wheelPrizes[index]);
   }
 

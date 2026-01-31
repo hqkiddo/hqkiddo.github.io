@@ -405,6 +405,13 @@ function pickNextTarget() {
 
 function startGame() {
   const mode = modes[modeSelect.value];
+  const selectedShape = shapeSelect.value;
+  if (!unlockedShapes.has(selectedShape)) {
+    setStatus("Unlock this magnifier shape to play.");
+    playBuzzer();
+    updateUI();
+    return;
+  }
   const selectedScene = sceneThemes[sceneSelect.value];
   if (!unlockedScenes.has(selectedScene.id)) {
     setStatus("Unlock this scene to play it.");
@@ -542,6 +549,9 @@ function handleTouchEnd(event) {
 
 function handleHint() {
   if (!running || gems < hintCost || !target) {
+    if (running && gems < hintCost) {
+      playBuzzer();
+    }
     return;
   }
   gems -= hintCost;
@@ -557,6 +567,7 @@ function unlockScene() {
   }
   if (gems < selectedScene.cost) {
     setStatus("Not enough gems to unlock.");
+    playBuzzer();
     return;
   }
   gems -= selectedScene.cost;
@@ -637,7 +648,6 @@ function unlockShape() {
 function changeShape() {
   const selectedShape = shapeSelect.value;
   if (!unlockedShapes.has(selectedShape)) {
-    playBuzzer();
     return;
   }
   magnifierShape = selectedShape;
@@ -899,6 +909,9 @@ function applyChancePrize(prize) {
 
 function spinChanceWheel() {
   if (isChanceSpinning || gems < spinCost) {
+    if (gems < spinCost) {
+      playBuzzer();
+    }
     return;
   }
   gems -= spinCost;
@@ -942,6 +955,9 @@ function spinChanceWheel() {
 
 function spinWheel() {
   if (isSpinning || spinsRemaining <= 0 || gems < spinCost) {
+    if (gems < spinCost) {
+      playBuzzer();
+    }
     return;
   }
   spinsRemaining -= 1;
@@ -987,6 +1003,9 @@ function spinWheel() {
 function upgradeMagnifier() {
   const cost = magnifierCosts[magnifierLevel];
   if (!cost || gems < cost) {
+    if (cost && gems < cost) {
+      playBuzzer();
+    }
     return;
   }
   gems -= cost;

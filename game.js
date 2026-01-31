@@ -12,10 +12,30 @@ const unlockSceneBtn = document.getElementById("unlockSceneBtn");
 const startBtn = document.getElementById("startBtn");
 const hintBtn = document.getElementById("hintBtn");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
+const spinBtn = document.getElementById("spinBtn");
+const wheelModal = document.getElementById("wheelModal");
+const closeWheelBtn = document.getElementById("closeWheelBtn");
+const spinWheelBtn = document.getElementById("spinWheelBtn");
+const wheelCanvas = document.getElementById("wheelCanvas");
+const wheelResult = document.getElementById("wheelResult");
+const dailyBtn = document.getElementById("dailyBtn");
+const dailyModal = document.getElementById("dailyModal");
+const closeDailyBtn = document.getElementById("closeDailyBtn");
+const claimDailyBtn = document.getElementById("claimDailyBtn");
+const dailyStatus = document.getElementById("dailyStatus");
+const chanceBtn = document.getElementById("chanceBtn");
+const chanceModal = document.getElementById("chanceModal");
+const closeChanceBtn = document.getElementById("closeChanceBtn");
+const spinChanceBtn = document.getElementById("spinChanceBtn");
+const chanceCanvas = document.getElementById("chanceCanvas");
+const chanceResult = document.getElementById("chanceResult");
 const magnifierLevelEl = document.getElementById("magnifierLevel");
-const clarityLevelEl = document.getElementById("clarityLevel");
+const shapeSelect = document.getElementById("shapeSelect");
+const unlockShapeBtn = document.getElementById("unlockShapeBtn");
 const upgradeMagnifierBtn = document.getElementById("upgradeMagnifierBtn");
-const upgradeClarityBtn = document.getElementById("upgradeClarityBtn");
+
+const wheelCtx = wheelCanvas.getContext("2d");
+const chanceCtx = chanceCanvas.getContext("2d");
 
 const sceneWidth = canvas.width;
 const sceneHeight = canvas.height;
@@ -27,10 +47,42 @@ const modes = {
 };
 
 const magnifierRadii = [70, 90, 115, 140];
-const clarityAlpha = [0.92, 0.84, 0.74, 0.64];
 const magnifierCosts = [10, 20, 35];
-const clarityCosts = [8, 16, 28];
 const hintCost = 5;
+const shapeCosts = {
+  circle: 0,
+  square: 15,
+  rounded: 20,
+  hex: 30,
+};
+const baseSpinsPerRound = 1;
+const wheelPrizes = [
+  { label: "+5 Gems", type: "gems", value: 5 },
+  { label: "+10 Gems", type: "gems", value: 10 },
+  { label: "+20 Gems", type: "gems", value: 20 },
+  { label: "+10s Time", type: "time", value: 10 },
+  { label: "+15s Time", type: "time", value: 15 },
+  { label: "Free Hint", type: "hint", value: 1 },
+  { label: "Spin Again", type: "spin", value: 1 },
+];
+const dailyRewards = [
+  { label: "+10 Gems", type: "gems", value: 10 },
+  { label: "+20 Gems", type: "gems", value: 20 },
+  { label: "+15s Time", type: "time", value: 15 },
+  { label: "+25s Time", type: "time", value: 25 },
+  { label: "Free Hint", type: "hint", value: 1 },
+  { label: "Spin Again", type: "spin", value: 1 },
+];
+const chancePrizes = [
+  { label: "+50 Gems", type: "gems", value: 50 },
+  { label: "+100 Gems", type: "gems", value: 100 },
+  { label: "+30s Time", type: "time", value: 30 },
+  { label: "Instant Win", type: "win", value: 1 },
+  { label: "Lose 20 Gems", type: "lose_gems", value: 20 },
+  { label: "Lose 10s", type: "lose_time", value: 10 },
+  { label: "No Prize", type: "nothing", value: 0 },
+  { label: "Lose Spin", type: "lose_spin", value: 1 },
+];
 
 const itemTemplates = [
   {
@@ -128,6 +180,27 @@ const sceneThemes = {
     imageUrl:
       "https://upload.wikimedia.org/wikipedia/commons/d/dc/Rocky-mountain-scene-942017.jpg",
   },
+  forest: {
+    id: "forest",
+    name: "Forest Lake",
+    cost: 30,
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/e/e5/Landscape-nature-forest-lake_%2824300004076%29.jpg",
+  },
+  lake: {
+    id: "lake",
+    name: "Sunset Lake",
+    cost: 28,
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/b/bf/Landscape_of_lake_and_clouds.jpg",
+  },
+  desert: {
+    id: "desert",
+    name: "Desert Dunes",
+    cost: 40,
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/4/48/A_scenic_view_of_the_desert_landscape_on_the_desert.jpg",
+  },
 };
 
 let items = [];
@@ -139,12 +212,19 @@ let target = null;
 let timerId = null;
 let hintUntil = 0;
 let magnifierLevel = 0;
-let clarityLevel = 0;
 let pointer = { x: sceneWidth / 2, y: sceneHeight / 2 };
 let currentScene = sceneThemes.park;
 const unlockedScenes = new Set(["park"]);
 const sceneImages = new Map();
 const itemImages = new Map();
+let spinsRemaining = baseSpinsPerRound;
+let wheelAngle = 0;
+let isSpinning = false;
+let dailyReward = null;
+let chanceAngle = 0;
+let isChanceSpinning = false;
+let magnifierShape = "circle";
+const unlockedShapes = new Set(["circle"]);
 
 function setStatus(message) {
   statusMessageEl.textContent = message;
@@ -155,19 +235,25 @@ function updateUI() {
   foundCountEl.textContent = found.toString();
   timeLeftEl.textContent = running ? `${timeLeft}s` : "--";
   magnifierLevelEl.textContent = `Level ${magnifierLevel + 1}`;
-  clarityLevelEl.textContent = `Level ${clarityLevel + 1}`;
 
   const nextMagCost = magnifierCosts[magnifierLevel];
-  const nextPicCost = clarityCosts[clarityLevel];
   upgradeMagnifierBtn.textContent = nextMagCost
     ? `Upgrade (${nextMagCost})`
     : "Maxed";
-  upgradeClarityBtn.textContent = nextPicCost
-    ? `Upgrade (${nextPicCost})`
-    : "Maxed";
   upgradeMagnifierBtn.disabled = !nextMagCost || gems < nextMagCost;
-  upgradeClarityBtn.disabled = !nextPicCost || gems < nextPicCost;
   hintBtn.disabled = !running || gems < hintCost;
+  spinBtn.disabled = spinsRemaining <= 0;
+  spinWheelBtn.disabled = isSpinning || spinsRemaining <= 0;
+  dailyBtn.disabled = false;
+  spinChanceBtn.disabled = isChanceSpinning;
+
+  const selectedShape = shapeSelect.value;
+  const shapeCost = shapeCosts[selectedShape];
+  const isShapeUnlocked = unlockedShapes.has(selectedShape);
+  unlockShapeBtn.textContent = isShapeUnlocked
+    ? "Unlocked"
+    : `Unlock (${shapeCost})`;
+  unlockShapeBtn.disabled = isShapeUnlocked || gems < shapeCost;
 
   Array.from(sceneSelect.options).forEach((option) => {
     const scene = sceneThemes[option.value];
@@ -263,6 +349,12 @@ function startGame() {
   timeLeft = mode.time;
   found = 0;
   running = true;
+  spinsRemaining = baseSpinsPerRound;
+  const pendingDaily = localStorage.getItem("mq-daily-pending");
+  if (pendingDaily) {
+    timeLeft += Number(pendingDaily);
+    localStorage.removeItem("mq-daily-pending");
+  }
   generateScene();
   setStatus("Find the object on the card.");
   updateUI();
@@ -413,6 +505,372 @@ function toggleFullscreen() {
   }
 }
 
+function buildMagnifierPath(radius, shape) {
+  ctx.beginPath();
+  if (shape === "square") {
+    ctx.rect(pointer.x - radius, pointer.y - radius, radius * 2, radius * 2);
+    return;
+  }
+
+  if (shape === "rounded") {
+    const size = radius * 2;
+    const corner = radius * 0.4;
+    const x = pointer.x - radius;
+    const y = pointer.y - radius;
+    ctx.moveTo(x + corner, y);
+    ctx.lineTo(x + size - corner, y);
+    ctx.quadraticCurveTo(x + size, y, x + size, y + corner);
+    ctx.lineTo(x + size, y + size - corner);
+    ctx.quadraticCurveTo(x + size, y + size, x + size - corner, y + size);
+    ctx.lineTo(x + corner, y + size);
+    ctx.quadraticCurveTo(x, y + size, x, y + size - corner);
+    ctx.lineTo(x, y + corner);
+    ctx.quadraticCurveTo(x, y, x + corner, y);
+    return;
+  }
+
+  if (shape === "hex") {
+    const angleStep = (Math.PI * 2) / 6;
+    for (let i = 0; i < 6; i += 1) {
+      const angle = angleStep * i - Math.PI / 2;
+      const x = pointer.x + Math.cos(angle) * radius;
+      const y = pointer.y + Math.sin(angle) * radius;
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    ctx.closePath();
+    return;
+  }
+
+  ctx.arc(pointer.x, pointer.y, radius, 0, Math.PI * 2);
+}
+
+function unlockShape() {
+  const selectedShape = shapeSelect.value;
+  const cost = shapeCosts[selectedShape];
+  if (unlockedShapes.has(selectedShape) || gems < cost) {
+    return;
+  }
+  gems -= cost;
+  unlockedShapes.add(selectedShape);
+  magnifierShape = selectedShape;
+  setStatus(`${selectedShape} magnifier unlocked.`);
+  updateUI();
+}
+
+function changeShape() {
+  const selectedShape = shapeSelect.value;
+  if (unlockedShapes.has(selectedShape)) {
+    magnifierShape = selectedShape;
+    setStatus(`${selectedShape} magnifier selected.`);
+  }
+}
+
+function getTodayKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+    now.getDate()
+  ).padStart(2, "0")}`;
+}
+
+function getDailyClaimKey() {
+  return `mq-daily-${getTodayKey()}`;
+}
+
+function openDaily() {
+  dailyReward = dailyRewards[Math.floor(Math.random() * dailyRewards.length)];
+  const claimed = localStorage.getItem(getDailyClaimKey());
+  dailyStatus.textContent = claimed
+    ? "You already claimed today. Come back tomorrow!"
+    : `Today's power-up: ${dailyReward.label}`;
+  claimDailyBtn.disabled = Boolean(claimed);
+  dailyModal.classList.add("show");
+  dailyModal.setAttribute("aria-hidden", "false");
+}
+
+function closeDaily() {
+  dailyModal.classList.remove("show");
+  dailyModal.setAttribute("aria-hidden", "true");
+}
+
+function claimDaily() {
+  if (!dailyReward || localStorage.getItem(getDailyClaimKey())) {
+    return;
+  }
+  localStorage.setItem(getDailyClaimKey(), "claimed");
+  if (dailyReward.type === "gems") {
+    addGems(dailyReward.value);
+    dailyStatus.textContent = `Claimed ${dailyReward.value} gems!`;
+  } else if (dailyReward.type === "time") {
+    if (running) {
+      timeLeft += dailyReward.value;
+      updateUI();
+      dailyStatus.textContent = `Added ${dailyReward.value} seconds to this round!`;
+    } else {
+      localStorage.setItem("mq-daily-pending", String(dailyReward.value));
+      dailyStatus.textContent = `Time bonus saved for your next round: ${dailyReward.value} seconds.`;
+    }
+  } else if (dailyReward.type === "hint") {
+    handleHint();
+    dailyStatus.textContent = "Free hint activated!";
+  } else if (dailyReward.type === "spin") {
+    spinsRemaining += 1;
+    dailyStatus.textContent = "You earned an extra spin!";
+  }
+  claimDailyBtn.disabled = true;
+  updateUI();
+}
+
+function openWheel() {
+  wheelModal.classList.add("show");
+  wheelModal.setAttribute("aria-hidden", "false");
+  wheelResult.textContent = spinsRemaining
+    ? `You have ${spinsRemaining} spin${spinsRemaining === 1 ? "" : "s"} left.`
+    : "No spins left this round.";
+  drawWheel();
+  updateUI();
+}
+
+function openChanceWheel() {
+  chanceModal.classList.add("show");
+  chanceModal.setAttribute("aria-hidden", "false");
+  chanceResult.textContent = "Spin for a big risk or big reward.";
+  drawChanceWheel();
+  updateUI();
+}
+
+function closeChanceWheel() {
+  chanceModal.classList.remove("show");
+  chanceModal.setAttribute("aria-hidden", "true");
+}
+
+function closeWheel() {
+  wheelModal.classList.remove("show");
+  wheelModal.setAttribute("aria-hidden", "true");
+}
+
+function drawWheel() {
+  const { width, height } = wheelCanvas;
+  const radius = Math.min(width, height) / 2 - 8;
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const slice = (Math.PI * 2) / wheelPrizes.length;
+  const colors = ["#fe7a57", "#ffd166", "#7bdff2", "#80ed99"];
+
+  wheelCtx.clearRect(0, 0, width, height);
+  wheelCtx.save();
+  wheelCtx.translate(centerX, centerY);
+  wheelCtx.rotate(wheelAngle);
+
+  wheelPrizes.forEach((prize, index) => {
+    wheelCtx.beginPath();
+    wheelCtx.moveTo(0, 0);
+    wheelCtx.fillStyle = colors[index % colors.length];
+    wheelCtx.arc(0, 0, radius, index * slice, (index + 1) * slice);
+    wheelCtx.fill();
+
+    wheelCtx.save();
+    wheelCtx.rotate(index * slice + slice / 2);
+    wheelCtx.fillStyle = "#0f1118";
+    wheelCtx.font = "bold 14px 'Segoe UI', sans-serif";
+    wheelCtx.textAlign = "right";
+    wheelCtx.textBaseline = "middle";
+    wheelCtx.fillText(prize.label, radius - 12, 0);
+    wheelCtx.restore();
+  });
+
+  wheelCtx.strokeStyle = "rgba(255,255,255,0.5)";
+  wheelCtx.lineWidth = 3;
+  wheelCtx.beginPath();
+  wheelCtx.arc(0, 0, radius, 0, Math.PI * 2);
+  wheelCtx.stroke();
+
+  wheelCtx.fillStyle = "#0f1118";
+  wheelCtx.beginPath();
+  wheelCtx.arc(0, 0, 24, 0, Math.PI * 2);
+  wheelCtx.fill();
+  wheelCtx.restore();
+}
+
+function drawChanceWheel() {
+  const { width, height } = chanceCanvas;
+  const radius = Math.min(width, height) / 2 - 8;
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const slice = (Math.PI * 2) / chancePrizes.length;
+  const colors = ["#fe7a57", "#4d7cff", "#ffd166", "#1ad1a5"];
+
+  chanceCtx.clearRect(0, 0, width, height);
+  chanceCtx.save();
+  chanceCtx.translate(centerX, centerY);
+  chanceCtx.rotate(chanceAngle);
+
+  chancePrizes.forEach((prize, index) => {
+    chanceCtx.beginPath();
+    chanceCtx.moveTo(0, 0);
+    chanceCtx.fillStyle = colors[index % colors.length];
+    chanceCtx.arc(0, 0, radius, index * slice, (index + 1) * slice);
+    chanceCtx.fill();
+
+    chanceCtx.save();
+    chanceCtx.rotate(index * slice + slice / 2);
+    chanceCtx.fillStyle = "#0f1118";
+    chanceCtx.font = "bold 13px 'Segoe UI', sans-serif";
+    chanceCtx.textAlign = "right";
+    chanceCtx.textBaseline = "middle";
+    chanceCtx.fillText(prize.label, radius - 12, 0);
+    chanceCtx.restore();
+  });
+
+  chanceCtx.strokeStyle = "rgba(255,255,255,0.5)";
+  chanceCtx.lineWidth = 3;
+  chanceCtx.beginPath();
+  chanceCtx.arc(0, 0, radius, 0, Math.PI * 2);
+  chanceCtx.stroke();
+
+  chanceCtx.fillStyle = "#0f1118";
+  chanceCtx.beginPath();
+  chanceCtx.arc(0, 0, 24, 0, Math.PI * 2);
+  chanceCtx.fill();
+  chanceCtx.restore();
+}
+
+function applyPrize(prize) {
+  if (prize.type === "gems") {
+    addGems(prize.value);
+    wheelResult.textContent = `You won ${prize.value} gems!`;
+  } else if (prize.type === "time") {
+    if (running) {
+      timeLeft += prize.value;
+      updateUI();
+    }
+    wheelResult.textContent = `You gained ${prize.value} seconds!`;
+  } else if (prize.type === "hint") {
+    handleHint();
+    wheelResult.textContent = "Free hint activated!";
+  } else if (prize.type === "spin") {
+    spinsRemaining += 1;
+    wheelResult.textContent = "Spin again unlocked!";
+  }
+  updateUI();
+}
+
+function applyChancePrize(prize) {
+  if (prize.type === "gems") {
+    addGems(prize.value);
+    chanceResult.textContent = `Lucky! You won ${prize.value} gems.`;
+  } else if (prize.type === "time") {
+    if (running) {
+      timeLeft += prize.value;
+      updateUI();
+    }
+    chanceResult.textContent = `Nice! You gained ${prize.value} seconds.`;
+  } else if (prize.type === "win") {
+    found += 1;
+    setStatus("Instant win! Card completed.");
+    pickNextTarget();
+    updateUI();
+    chanceResult.textContent = "Instant win! You auto-found the card item.";
+  } else if (prize.type === "lose_gems") {
+    gems = Math.max(0, gems - prize.value);
+    updateUI();
+    chanceResult.textContent = `Ouch! You lost ${prize.value} gems.`;
+  } else if (prize.type === "lose_time") {
+    if (running) {
+      timeLeft = Math.max(0, timeLeft - prize.value);
+      updateUI();
+    }
+    chanceResult.textContent = `Ouch! You lost ${prize.value} seconds.`;
+  } else if (prize.type === "lose_spin") {
+    spinsRemaining = Math.max(0, spinsRemaining - 1);
+    updateUI();
+    chanceResult.textContent = "Bad luck! You lost one spin.";
+  } else {
+    chanceResult.textContent = "Nothing this time.";
+  }
+  updateUI();
+}
+
+function spinChanceWheel() {
+  if (isChanceSpinning) {
+    return;
+  }
+  isChanceSpinning = true;
+  chanceResult.textContent = "Spinning...";
+  updateUI();
+
+  const slice = (Math.PI * 2) / chancePrizes.length;
+  const landingIndex = Math.floor(Math.random() * chancePrizes.length);
+  const targetAngle =
+    Math.PI * 2 * (3 + Math.random()) -
+    (landingIndex * slice + slice / 2);
+  const startAngle = chanceAngle;
+  const duration = 2200;
+  const startTime = performance.now();
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    chanceAngle = startAngle + targetAngle * ease;
+    drawChanceWheel();
+
+    if (t < 1) {
+      requestAnimationFrame(animate);
+      return;
+    }
+
+    isChanceSpinning = false;
+    const normalized = (Math.PI * 2 - (chanceAngle % (Math.PI * 2))) % (Math.PI * 2);
+    const index = Math.floor(normalized / slice) % chancePrizes.length;
+    applyChancePrize(chancePrizes[index]);
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function spinWheel() {
+  if (isSpinning || spinsRemaining <= 0) {
+    return;
+  }
+  spinsRemaining -= 1;
+  isSpinning = true;
+  wheelResult.textContent = "Spinning...";
+  updateUI();
+
+  const slice = (Math.PI * 2) / wheelPrizes.length;
+  const landingIndex = Math.floor(Math.random() * wheelPrizes.length);
+  const targetAngle =
+    Math.PI * 2 * (3 + Math.random()) -
+    (landingIndex * slice + slice / 2);
+  const startAngle = wheelAngle;
+  const duration = 2200;
+  const startTime = performance.now();
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    wheelAngle = startAngle + targetAngle * ease;
+    drawWheel();
+
+    if (t < 1) {
+      requestAnimationFrame(animate);
+      return;
+    }
+
+    isSpinning = false;
+    const normalized = (Math.PI * 2 - (wheelAngle % (Math.PI * 2))) % (Math.PI * 2);
+    const index = Math.floor(normalized / slice) % wheelPrizes.length;
+    applyPrize(wheelPrizes[index]);
+  }
+
+  requestAnimationFrame(animate);
+}
+
 function upgradeMagnifier() {
   const cost = magnifierCosts[magnifierLevel];
   if (!cost || gems < cost) {
@@ -421,17 +879,6 @@ function upgradeMagnifier() {
   gems -= cost;
   magnifierLevel += 1;
   setStatus("Magnifier upgraded.");
-  updateUI();
-}
-
-function upgradeClarity() {
-  const cost = clarityCosts[clarityLevel];
-  if (!cost || gems < cost) {
-    return;
-  }
-  gems -= cost;
-  clarityLevel += 1;
-  setStatus("Picture upgraded.");
   updateUI();
 }
 
@@ -595,8 +1042,7 @@ function render() {
 
   const radius = magnifierRadii[magnifierLevel];
   ctx.save();
-  ctx.beginPath();
-  ctx.arc(pointer.x, pointer.y, radius, 0, Math.PI * 2);
+  buildMagnifierPath(radius, magnifierShape);
   ctx.clip();
   drawScene();
   ctx.restore();
@@ -616,7 +1062,35 @@ unlockSceneBtn.addEventListener("click", unlockScene);
 sceneSelect.addEventListener("change", updateUI);
 fullscreenBtn.addEventListener("click", toggleFullscreen);
 upgradeMagnifierBtn.addEventListener("click", upgradeMagnifier);
-upgradeClarityBtn.addEventListener("click", upgradeClarity);
+spinBtn.addEventListener("click", openWheel);
+closeWheelBtn.addEventListener("click", closeWheel);
+spinWheelBtn.addEventListener("click", spinWheel);
+wheelModal.addEventListener("click", (event) => {
+  if (event.target === wheelModal) {
+    closeWheel();
+  }
+});
+dailyBtn.addEventListener("click", openDaily);
+closeDailyBtn.addEventListener("click", closeDaily);
+claimDailyBtn.addEventListener("click", claimDaily);
+dailyModal.addEventListener("click", (event) => {
+  if (event.target === dailyModal) {
+    closeDaily();
+  }
+});
+chanceBtn.addEventListener("click", openChanceWheel);
+closeChanceBtn.addEventListener("click", closeChanceWheel);
+spinChanceBtn.addEventListener("click", spinChanceWheel);
+chanceModal.addEventListener("click", (event) => {
+  if (event.target === chanceModal) {
+    closeChanceWheel();
+  }
+});
+unlockShapeBtn.addEventListener("click", unlockShape);
+shapeSelect.addEventListener("change", () => {
+  changeShape();
+  updateUI();
+});
 
 updateUI();
 preloadScene(currentScene);

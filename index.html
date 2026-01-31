@@ -55,6 +55,9 @@
             <option value="beach">Golden Beach</option>
             <option value="city">City Streets</option>
             <option value="meadow">Wild Meadow</option>
+            <option value="forest">Forest Lake</option>
+            <option value="lake">Sunset Lake</option>
+            <option value="desert">Desert Dunes</option>
           </select>
           <button id="unlockSceneBtn" class="ghost">Unlock</button>
           <label for="modeSelect">Mode</label>
@@ -66,6 +69,9 @@
           <button id="startBtn" class="primary">Start</button>
           <button id="hintBtn" class="ghost">Hint (5 gems)</button>
           <button id="fullscreenBtn" class="ghost">Fullscreen</button>
+          <button id="spinBtn" class="ghost">Spin Wheel</button>
+          <button id="dailyBtn" class="ghost">Daily Power-Up</button>
+          <button id="chanceBtn" class="ghost">Chance Wheel</button>
         </div>
         <div class="control-group upgrades">
           <div class="upgrade-card">
@@ -74,9 +80,14 @@
             <button id="upgradeMagnifierBtn">Upgrade</button>
           </div>
           <div class="upgrade-card">
-            <span class="label">Picture</span>
-            <span id="clarityLevel">Level 1</span>
-            <button id="upgradeClarityBtn">Upgrade</button>
+            <span class="label">Magnifier Shape</span>
+            <select id="shapeSelect">
+              <option value="circle">Circle</option>
+              <option value="square">Square</option>
+              <option value="rounded">Rounded</option>
+              <option value="hex">Hex</option>
+            </select>
+            <button id="unlockShapeBtn">Unlock</button>
           </div>
         </div>
       </section>
@@ -109,12 +120,67 @@
           <li>Hard: 25 seconds, 10 gems per find.</li>
           <li>Hints cost gems and briefly point to the target.</li>
           <li>Hidden gems sometimes appear in the picture.</li>
+          <li>Spin the prize wheel once per round for bonuses.</li>
+          <li>Claim a daily power-up once per day.</li>
+          <li>Try the chance wheel for big rewards or big risks.</li>
         </ul>
       </section>
 
       <footer class="footer">
         <p>© 2026 Hayley H</p>
       </footer>
+    </div>
+
+    <div id="wheelModal" class="modal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Prize Wheel</h3>
+          <button id="closeWheelBtn" class="ghost">Close</button>
+        </div>
+        <p class="modal-subtext">
+          Spin for prizes like gems, extra time, or a free hint.
+        </p>
+        <div class="wheel-wrap">
+          <canvas id="wheelCanvas" width="360" height="360"></canvas>
+          <div class="wheel-pointer"></div>
+        </div>
+        <button id="spinWheelBtn" class="primary">Spin</button>
+        <p id="wheelResult" class="modal-subtext"></p>
+      </div>
+    </div>
+
+    <div id="dailyModal" class="modal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Daily Power-Up</h3>
+          <button id="closeDailyBtn" class="ghost">Close</button>
+        </div>
+        <p class="modal-subtext">
+          Claim a free power-up once per day.
+        </p>
+        <div class="card">
+          <p id="dailyStatus" class="card-subtext"></p>
+        </div>
+        <button id="claimDailyBtn" class="primary">Claim</button>
+      </div>
+    </div>
+
+    <div id="chanceModal" class="modal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Chance Wheel</h3>
+          <button id="closeChanceBtn" class="ghost">Close</button>
+        </div>
+        <p class="modal-subtext">
+          Big risk, big reward. Good or not good at all.
+        </p>
+        <div class="wheel-wrap">
+          <canvas id="chanceCanvas" width="360" height="360"></canvas>
+          <div class="wheel-pointer"></div>
+        </div>
+        <button id="spinChanceBtn" class="primary">Spin</button>
+        <p id="chanceResult" class="modal-subtext"></p>
+      </div>
     </div>
 
     <script src="game.js"></script>

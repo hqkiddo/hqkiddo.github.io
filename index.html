@@ -23,12 +23,25 @@
             <span class="label">Time</span>
             <span id="timeLeft">--</span>
           </div>
-          <div>
+          <div class="stat-gems">
             <span class="label">Gems</span>
-            <span id="gemCount">0</span>
+            <span class="stat-value">
+              <svg
+                class="gem-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M12 2 4 9l8 13 8-13-8-7Zm0 4 3.8 3.4L12 19 8.2 9.4 12 6Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span id="gemCount">0</span>
+            </span>
           </div>
           <div>
-            <span class="label">Found</span>
+            <span class="label">Items Found</span>
             <span id="foundCount">0</span>
           </div>
         </div>
@@ -98,6 +111,10 @@
           <li>Hidden gems sometimes appear in the picture.</li>
         </ul>
       </section>
+
+      <footer class="footer">
+        <p>© 2026 Hayley H</p>
+      </footer>
     </div>
 
     <script src="game.js"></script>

@@ -70,6 +70,18 @@ button {
   min-width: 70px;
 }
 
+.stat-gems .stat-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gem-icon {
+  width: 18px;
+  height: 18px;
+  color: #65f9ff;
+}
+
 .label {
   text-transform: uppercase;
   letter-spacing: 0.12em;

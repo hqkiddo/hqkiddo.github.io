@@ -59,33 +59,29 @@ const sceneThemes = {
     id: "park",
     name: "Sunny Park",
     cost: 0,
-    skyTop: "#7ec9ff",
-    skyBottom: "#dff3ff",
-    ground: "#96d38c",
+    imageUrl:
+      "https://images.unsplash.com/photo-1508606572321-901ea443707f?auto=format&fit=crop&w=1400&q=80",
   },
   beach: {
     id: "beach",
     name: "Golden Beach",
     cost: 25,
-    skyTop: "#8bd3ff",
-    skyBottom: "#ffe6b3",
-    ground: "#f6d3a0",
+    imageUrl:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80",
   },
   city: {
     id: "city",
     name: "City Streets",
     cost: 35,
-    skyTop: "#9bb6ff",
-    skyBottom: "#e5efff",
-    ground: "#c4c4cf",
+    imageUrl:
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80",
   },
   meadow: {
     id: "meadow",
     name: "Wild Meadow",
     cost: 20,
-    skyTop: "#89d4ff",
-    skyBottom: "#f8f2e5",
-    ground: "#a4e3a1",
+    imageUrl:
+      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1400&q=80",
   },
 };
 
@@ -102,6 +98,7 @@ let clarityLevel = 0;
 let pointer = { x: sceneWidth / 2, y: sceneHeight / 2 };
 let currentScene = sceneThemes.park;
 const unlockedScenes = new Set(["park"]);
+const sceneImages = new Map();
 
 function setStatus(message) {
   statusMessageEl.textContent = message;
@@ -216,6 +213,7 @@ function startGame() {
     return;
   }
   currentScene = selectedScene;
+  preloadScene(selectedScene);
   timeLeft = mode.time;
   found = 0;
   running = true;
@@ -356,6 +354,7 @@ function unlockScene() {
   }
   gems -= selectedScene.cost;
   unlockedScenes.add(selectedScene.id);
+  preloadScene(selectedScene);
   setStatus(`${selectedScene.name} unlocked!`);
   updateUI();
 }
@@ -390,190 +389,51 @@ function upgradeClarity() {
   updateUI();
 }
 
-function drawSky(theme) {
-  const gradient = ctx.createLinearGradient(0, 0, 0, sceneHeight);
-  gradient.addColorStop(0, theme.skyTop);
-  gradient.addColorStop(1, theme.skyBottom);
-  ctx.fillStyle = gradient;
+function preloadScene(scene) {
+  if (sceneImages.has(scene.id)) {
+    return;
+  }
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = scene.imageUrl;
+  sceneImages.set(scene.id, img);
+}
+
+function drawCoverImage(image) {
+  const canvasRatio = sceneWidth / sceneHeight;
+  const imageRatio = image.width / image.height;
+  let drawWidth = sceneWidth;
+  let drawHeight = sceneHeight;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  if (imageRatio > canvasRatio) {
+    drawHeight = sceneHeight;
+    drawWidth = imageRatio * drawHeight;
+    offsetX = (sceneWidth - drawWidth) / 2;
+  } else {
+    drawWidth = sceneWidth;
+    drawHeight = drawWidth / imageRatio;
+    offsetY = (sceneHeight - drawHeight) / 2;
+  }
+
+  ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
   ctx.fillRect(0, 0, sceneWidth, sceneHeight);
-
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
-  for (let i = 0; i < 6; i += 1) {
-    const x = 90 + i * 140;
-    const y = 70 + (i % 2) * 26;
-    ctx.beginPath();
-    ctx.ellipse(x, y, 56, 24, 0, 0, Math.PI * 2);
-    ctx.ellipse(x + 42, y + 10, 42, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-function drawMountains() {
-  ctx.fillStyle = "rgba(90, 120, 150, 0.35)";
-  ctx.beginPath();
-  ctx.moveTo(0, 320);
-  ctx.lineTo(180, 180);
-  ctx.lineTo(360, 320);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = "rgba(70, 100, 130, 0.4)";
-  ctx.beginPath();
-  ctx.moveTo(240, 330);
-  ctx.lineTo(440, 170);
-  ctx.lineTo(660, 330);
-  ctx.closePath();
-  ctx.fill();
-}
-
-function drawGround(theme) {
-  ctx.fillStyle = theme.ground;
-  ctx.beginPath();
-  ctx.ellipse(160, 460, 240, 120, 0, 0, Math.PI * 2);
-  ctx.ellipse(600, 520, 340, 150, 0, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function drawWater() {
-  const gradient = ctx.createLinearGradient(0, 360, 0, sceneHeight);
-  gradient.addColorStop(0, "rgba(120, 196, 255, 0.9)");
-  gradient.addColorStop(1, "rgba(60, 130, 200, 0.9)");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 360, sceneWidth, sceneHeight);
-
-  ctx.strokeStyle = "rgba(255,255,255,0.35)";
-  for (let y = 380; y < sceneHeight; y += 22) {
-    ctx.beginPath();
-    ctx.moveTo(40, y);
-    ctx.quadraticCurveTo(160, y - 6, 280, y);
-    ctx.stroke();
-  }
-}
-
-function drawCity() {
-  ctx.fillStyle = "#5d6478";
-  ctx.fillRect(40, 240, 120, 180);
-  ctx.fillRect(190, 210, 80, 210);
-  ctx.fillRect(290, 260, 140, 160);
-  ctx.fillRect(460, 220, 120, 200);
-  ctx.fillRect(610, 250, 160, 170);
-
-  ctx.fillStyle = "rgba(255,255,200,0.6)";
-  for (let x = 60; x < 760; x += 50) {
-    for (let y = 260; y < 380; y += 40) {
-      ctx.fillRect(x, y, 18, 14);
-    }
-  }
-}
-
-function drawCityDetails() {
-  ctx.fillStyle = "#2b2f3a";
-  ctx.fillRect(0, 420, sceneWidth, 130);
-  ctx.strokeStyle = "rgba(255,255,255,0.35)";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(40, 485);
-  ctx.lineTo(220, 485);
-  ctx.moveTo(300, 485);
-  ctx.lineTo(480, 485);
-  ctx.moveTo(560, 485);
-  ctx.lineTo(740, 485);
-  ctx.stroke();
-
-  ctx.fillStyle = "#4a4f5c";
-  ctx.fillRect(100, 380, 80, 40);
-  ctx.fillRect(520, 380, 120, 40);
-  ctx.fillStyle = "rgba(255,255,255,0.4)";
-  ctx.fillRect(130, 388, 20, 16);
-  ctx.fillRect(570, 388, 20, 16);
-  ctx.fillRect(600, 388, 20, 16);
-}
-
-function drawBeach() {
-  ctx.fillStyle = "rgba(246, 211, 160, 0.9)";
-  ctx.fillRect(0, 360, sceneWidth, sceneHeight);
-  ctx.fillStyle = "rgba(255,255,255,0.5)";
-  for (let i = 0; i < 8; i += 1) {
-    ctx.beginPath();
-    ctx.ellipse(80 + i * 110, 420 + (i % 2) * 18, 40, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-function drawBeachDetails() {
-  ctx.strokeStyle = "rgba(255,255,255,0.5)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(0, 360);
-  ctx.bezierCurveTo(200, 380, 420, 340, 640, 365);
-  ctx.lineTo(sceneWidth, 350);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-  ctx.beginPath();
-  ctx.arc(780, 90, 40, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function drawTreesLine() {
-  ctx.fillStyle = "#5a7d4c";
-  for (let i = 0; i < 7; i += 1) {
-    const x = 60 + i * 120;
-    ctx.beginPath();
-    ctx.arc(x, 330, 30, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillRect(x - 6, 330, 12, 40);
-  }
-}
-
-function drawParkDetails() {
-  ctx.fillStyle = "rgba(120, 90, 60, 0.9)";
-  ctx.beginPath();
-  ctx.moveTo(0, 470);
-  ctx.quadraticCurveTo(200, 420, 420, 460);
-  ctx.quadraticCurveTo(640, 500, sceneWidth, 450);
-  ctx.lineTo(sceneWidth, sceneHeight);
-  ctx.lineTo(0, sceneHeight);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = "#b07a48";
-  ctx.fillRect(120, 360, 60, 20);
-  ctx.fillRect(120, 380, 8, 30);
-  ctx.fillRect(172, 380, 8, 30);
-}
-
-function drawMeadowDetails() {
-  ctx.fillStyle = "rgba(255, 182, 193, 0.7)";
-  for (let i = 0; i < 12; i += 1) {
-    const x = 50 + i * 70;
-    const y = 420 + (i % 3) * 22;
-    ctx.beginPath();
-    ctx.arc(x, y, 6, 0, Math.PI * 2);
-    ctx.fill();
-  }
 }
 
 function drawBackground() {
-  drawSky(currentScene);
-  drawMountains();
-  if (currentScene.id === "beach") {
-    drawBeach();
-    drawWater();
-    drawBeachDetails();
-  } else if (currentScene.id === "city") {
-    drawGround(currentScene);
-    drawCity();
-    drawCityDetails();
-  } else {
-    drawGround(currentScene);
-    drawTreesLine();
-    if (currentScene.id === "park") {
-      drawParkDetails();
-    } else {
-      drawMeadowDetails();
-    }
+  const sceneImage = sceneImages.get(currentScene.id);
+  if (sceneImage && sceneImage.complete && sceneImage.naturalWidth > 0) {
+    drawCoverImage(sceneImage);
+    return;
   }
+
+  ctx.fillStyle = "#11141c";
+  ctx.fillRect(0, 0, sceneWidth, sceneHeight);
+  ctx.fillStyle = "rgba(255,255,255,0.6)";
+  ctx.font = "20px 'Segoe UI', sans-serif";
+  ctx.fillText("Loading scene...", 32, 40);
 }
 
 function drawItem(item) {
@@ -850,4 +710,5 @@ upgradeMagnifierBtn.addEventListener("click", upgradeMagnifier);
 upgradeClarityBtn.addEventListener("click", upgradeClarity);
 
 updateUI();
+preloadScene(currentScene);
 render();

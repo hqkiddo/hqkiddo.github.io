@@ -212,14 +212,14 @@ canvas {
 }
 
 .status {
-  position: absolute;
-  left: 18px;
-  bottom: 18px;
+  position: static;
+  margin-top: 12px;
   padding: 8px 14px;
   border-radius: 999px;
   background: rgba(15, 17, 24, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.2);
   font-size: 0.85rem;
+  width: fit-content;
 }
 
 .rules {

@@ -487,28 +487,7 @@ function drawHint() {
   ctx.restore();
 }
 
-function drawMagnifier() {
-  const radius = magnifierRadii[magnifierLevel];
-  ctx.save();
-  ctx.fillStyle = `rgba(0, 0, 0, ${clarityAlpha[clarityLevel]})`;
-  ctx.fillRect(0, 0, sceneWidth, sceneHeight);
-  ctx.globalCompositeOperation = "destination-out";
-  const gradient = ctx.createRadialGradient(
-    pointer.x,
-    pointer.y,
-    radius * 0.4,
-    pointer.x,
-    pointer.y,
-    radius
-  );
-  gradient.addColorStop(0, "rgba(0,0,0,1)");
-  gradient.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = gradient;
-  ctx.beginPath();
-  ctx.arc(pointer.x, pointer.y, radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
+function drawMagnifierRing(radius) {
   ctx.save();
   ctx.strokeStyle = "rgba(255,255,255,0.9)";
   ctx.lineWidth = 2;
@@ -518,12 +497,26 @@ function drawMagnifier() {
   ctx.restore();
 }
 
-function render() {
-  ctx.clearRect(0, 0, sceneWidth, sceneHeight);
+function drawScene() {
   drawBackground();
   items.forEach(drawItem);
   drawHint();
-  drawMagnifier();
+}
+
+function render() {
+  ctx.clearRect(0, 0, sceneWidth, sceneHeight);
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, sceneWidth, sceneHeight);
+
+  const radius = magnifierRadii[magnifierLevel];
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(pointer.x, pointer.y, radius, 0, Math.PI * 2);
+  ctx.clip();
+  drawScene();
+  ctx.restore();
+
+  drawMagnifierRing(radius);
   requestAnimationFrame(render);
 }
 

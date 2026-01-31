@@ -33,25 +33,71 @@ const clarityCosts = [8, 16, 28];
 const hintCost = 5;
 
 const itemTemplates = [
-  { name: "Ice Cream", type: "icecream", color: "#f6b8d0" },
-  { name: "Bench", type: "bench", color: "#a5753b" },
-  { name: "Balloon", type: "balloon", color: "#ff6b6b" },
-  { name: "Book", type: "book", color: "#4d7cff" },
-  { name: "Rocket", type: "rocket", color: "#f8d86b" },
-  { name: "Umbrella", type: "umbrella", color: "#9b5de5" },
-  { name: "Tree", type: "tree", color: "#57c785" },
-  { name: "Cat", type: "cat", color: "#f2b880" },
-  { name: "Star", type: "star", color: "#ffd166" },
-  { name: "Kite", type: "kite", color: "#00bbf9" },
-  { name: "Camera", type: "camera", color: "#5d6a82" },
-  { name: "Shell", type: "shell", color: "#f7a072" },
-  { name: "Backpack", type: "backpack", color: "#3d5a80" },
-  { name: "Clock", type: "clock", color: "#e0fbfc" },
-  { name: "Flower", type: "flower", color: "#ffafcc" },
-  { name: "Bottle", type: "bottle", color: "#7bdff2" },
-  { name: "Key", type: "key", color: "#f4c430" },
-  { name: "Leaf", type: "leaf", color: "#80ed99" },
-  { name: "Cup", type: "cup", color: "#ffd6a5" },
+  {
+    name: "Ice Cream",
+    type: "icecream",
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/2/26/Vanilla_ice_cream_cone_detail.jpg",
+  },
+  {
+    name: "Balloon",
+    type: "balloon",
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/c/c3/Balloon_fully_inflated.jpg",
+  },
+  {
+    name: "Book",
+    type: "book",
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/a/a3/Freethetextbook.jpg",
+  },
+  {
+    name: "Umbrella",
+    type: "umbrella",
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/9/9d/Umbrella.jpg",
+  },
+  {
+    name: "Camera",
+    type: "camera",
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Digital_Camera.jpg",
+  },
+  {
+    name: "Shell",
+    type: "shell",
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/f/f8/Small_sea_shell.jpg",
+  },
+  {
+    name: "Backpack",
+    type: "backpack",
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/e/ea/Backpack%2C_military_%28AM_1929.162.1-1%29.jpg",
+  },
+  {
+    name: "Clock",
+    type: "clock",
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Clock.jpeg",
+  },
+  {
+    name: "Flower",
+    type: "flower",
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/2/22/Flower_macro_hd.jpg",
+  },
+  {
+    name: "Key",
+    type: "key",
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/3/3c/House_key.jpg",
+  },
+  {
+    name: "Cup",
+    type: "cup",
+    imageUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/3/3a/Coffee_cup_seen_from_above.jpg",
+  },
+  {
+    name: "Leaf",
+    type: "leaf",
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/3/32/Maple_leaf.jpg",
+  },
 ];
 
 const sceneThemes = {
@@ -60,28 +106,27 @@ const sceneThemes = {
     name: "Sunny Park",
     cost: 0,
     imageUrl:
-      "https://images.unsplash.com/photo-1508606572321-901ea443707f?auto=format&fit=crop&w=1400&q=80",
+      "https://upload.wikimedia.org/wikipedia/commons/e/ef/Prior_Park_Landscape_Garden.jpg",
   },
   beach: {
     id: "beach",
     name: "Golden Beach",
     cost: 25,
-    imageUrl:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80",
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/8/85/Empty_beach.jpg",
   },
   city: {
     id: "city",
     name: "City Streets",
     cost: 35,
     imageUrl:
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=80",
+      "https://upload.wikimedia.org/wikipedia/commons/3/3e/Seattle_skyline.jpeg",
   },
   meadow: {
     id: "meadow",
     name: "Wild Meadow",
     cost: 20,
     imageUrl:
-      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1400&q=80",
+      "https://upload.wikimedia.org/wikipedia/commons/d/dc/Rocky-mountain-scene-942017.jpg",
   },
 };
 
@@ -99,6 +144,7 @@ let pointer = { x: sceneWidth / 2, y: sceneHeight / 2 };
 let currentScene = sceneThemes.park;
 const unlockedScenes = new Set(["park"]);
 const sceneImages = new Map();
+const itemImages = new Map();
 
 function setStatus(message) {
   statusMessageEl.textContent = message;
@@ -399,6 +445,18 @@ function preloadScene(scene) {
   sceneImages.set(scene.id, img);
 }
 
+function preloadItemImages() {
+  itemTemplates.forEach((item) => {
+    if (!item.imageUrl || itemImages.has(item.imageUrl)) {
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = item.imageUrl;
+    itemImages.set(item.imageUrl, img);
+  });
+}
+
 function drawCoverImage(image) {
   const canvasRatio = sceneWidth / sceneHeight;
   const imageRatio = image.width / image.height;
@@ -422,6 +480,20 @@ function drawCoverImage(image) {
   ctx.fillRect(0, 0, sceneWidth, sceneHeight);
 }
 
+function drawCoverImageAt(image, size) {
+  const imageRatio = image.width / image.height;
+  let drawWidth = size;
+  let drawHeight = size;
+
+  if (imageRatio > 1) {
+    drawWidth = size * imageRatio;
+  } else {
+    drawHeight = size / imageRatio;
+  }
+
+  ctx.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+}
+
 function drawBackground() {
   const sceneImage = sceneImages.get(currentScene.id);
   if (sceneImage && sceneImage.complete && sceneImage.naturalWidth > 0) {
@@ -437,215 +509,52 @@ function drawBackground() {
 }
 
 function drawItem(item) {
+  if (item.isGem) {
+    ctx.save();
+    ctx.translate(item.x, item.y);
+    ctx.globalAlpha = item.found ? 0.35 : 1;
+    ctx.fillStyle = "#65f9ff";
+    ctx.strokeStyle = "rgba(255,255,255,0.6)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -16);
+    ctx.lineTo(14, -2);
+    ctx.lineTo(8, 16);
+    ctx.lineTo(-8, 16);
+    ctx.lineTo(-14, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
+  const image = item.imageUrl ? itemImages.get(item.imageUrl) : null;
+  const radius = item.size * 1.2;
   ctx.save();
   ctx.translate(item.x, item.y);
   ctx.globalAlpha = item.found ? 0.35 : 1;
-  ctx.fillStyle = item.color;
-  ctx.strokeStyle = "rgba(0,0,0,0.15)";
-  ctx.lineWidth = 2;
 
-  switch (item.type) {
-    case "icecream":
-      ctx.beginPath();
-      ctx.arc(0, -12, item.size, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#d49a6a";
-      ctx.beginPath();
-      ctx.moveTo(0, 26);
-      ctx.lineTo(-12, -2);
-      ctx.lineTo(12, -2);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case "bench":
-      ctx.fillRect(-26, -10, 52, 14);
-      ctx.fillRect(-22, 6, 6, 18);
-      ctx.fillRect(16, 6, 6, 18);
-      break;
-    case "balloon":
-      ctx.beginPath();
-      ctx.ellipse(0, -10, 16, 22, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#2f2f2f";
-      ctx.beginPath();
-      ctx.moveTo(0, 12);
-      ctx.lineTo(0, 32);
-      ctx.stroke();
-      break;
-    case "book":
-      ctx.fillRect(-22, -16, 44, 28);
-      ctx.fillStyle = "#fef3c7";
-      ctx.fillRect(-18, -12, 36, 20);
-      break;
-    case "rocket":
-      ctx.beginPath();
-      ctx.moveTo(0, -30);
-      ctx.lineTo(16, 10);
-      ctx.lineTo(0, 20);
-      ctx.lineTo(-16, 10);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = "#f25f5c";
-      ctx.beginPath();
-      ctx.arc(0, 0, 6, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case "umbrella":
-      ctx.beginPath();
-      ctx.arc(0, 0, 26, Math.PI, 0);
-      ctx.fill();
-      ctx.strokeStyle = "#333";
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(0, 28);
-      ctx.stroke();
-      break;
-    case "tree":
-      ctx.fillStyle = "#7c4a2d";
-      ctx.fillRect(-6, 4, 12, 22);
-      ctx.fillStyle = item.color;
-      ctx.beginPath();
-      ctx.arc(0, -4, 24, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case "cat":
-      ctx.beginPath();
-      ctx.ellipse(0, 4, 18, 14, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(0, -10, 12, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#3a2f2b";
-      ctx.beginPath();
-      ctx.arc(-4, -12, 2, 0, Math.PI * 2);
-      ctx.arc(4, -12, 2, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case "star":
-      ctx.beginPath();
-      for (let i = 0; i < 5; i += 1) {
-        ctx.lineTo(
-          Math.cos(((18 + i * 72) * Math.PI) / 180) * 18,
-          -Math.sin(((18 + i * 72) * Math.PI) / 180) * 18
-        );
-        ctx.lineTo(
-          Math.cos(((54 + i * 72) * Math.PI) / 180) * 8,
-          -Math.sin(((54 + i * 72) * Math.PI) / 180) * 8
-        );
-      }
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case "kite":
-      ctx.beginPath();
-      ctx.moveTo(0, -24);
-      ctx.lineTo(18, 0);
-      ctx.lineTo(0, 24);
-      ctx.lineTo(-18, 0);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "#3a3a3a";
-      ctx.beginPath();
-      ctx.moveTo(0, 24);
-      ctx.lineTo(0, 40);
-      ctx.stroke();
-      break;
-    case "camera":
-      ctx.fillRect(-24, -12, 48, 28);
-      ctx.fillStyle = "#f0f4ff";
-      ctx.beginPath();
-      ctx.arc(0, 2, 10, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case "shell":
-      ctx.beginPath();
-      ctx.arc(0, 12, 20, Math.PI, 0);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.5)";
-      for (let i = -12; i <= 12; i += 6) {
-        ctx.beginPath();
-        ctx.moveTo(i, 12);
-        ctx.lineTo(0, -8);
-        ctx.stroke();
-      }
-      break;
-    case "gem":
-      ctx.beginPath();
-      ctx.moveTo(0, -16);
-      ctx.lineTo(14, -2);
-      ctx.lineTo(8, 16);
-      ctx.lineTo(-8, 16);
-      ctx.lineTo(-14, -2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255,255,255,0.6)";
-      ctx.stroke();
-      break;
-    case "backpack":
-      ctx.fillRect(-18, -14, 36, 36);
-      ctx.fillStyle = "rgba(255,255,255,0.5)";
-      ctx.fillRect(-12, -10, 24, 18);
-      break;
-    case "clock":
-      ctx.beginPath();
-      ctx.arc(0, 0, 18, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#223";
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(0, -10);
-      ctx.moveTo(0, 0);
-      ctx.lineTo(8, 4);
-      ctx.stroke();
-      break;
-    case "flower":
-      ctx.beginPath();
-      for (let i = 0; i < 6; i += 1) {
-        ctx.ellipse(
-          Math.cos((i * Math.PI) / 3) * 10,
-          Math.sin((i * Math.PI) / 3) * 10,
-          6,
-          12,
-          0,
-          0,
-          Math.PI * 2
-        );
-      }
-      ctx.fill();
-      ctx.fillStyle = "#ffd166";
-      ctx.beginPath();
-      ctx.arc(0, 0, 6, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case "bottle":
-      ctx.fillRect(-8, -20, 16, 32);
-      ctx.fillRect(-4, -28, 8, 8);
-      break;
-    case "key":
-      ctx.beginPath();
-      ctx.arc(-10, 0, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillRect(-2, -2, 24, 6);
-      ctx.fillRect(12, 4, 6, 6);
-      ctx.fillRect(18, 4, 6, 6);
-      break;
-    case "leaf":
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 10, 18, Math.PI / 6, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case "cup":
-      ctx.fillRect(-14, -10, 28, 20);
-      ctx.strokeStyle = "rgba(0,0,0,0.3)";
-      ctx.beginPath();
-      ctx.arc(16, 0, 8, -Math.PI / 2, Math.PI / 2);
-      ctx.stroke();
-      break;
-    default:
-      ctx.beginPath();
-      ctx.arc(0, 0, 16, 0, Math.PI * 2);
-      ctx.fill();
+  if (image && image.complete && image.naturalWidth > 0) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.clip();
+    drawCoverImageAt(image, radius * 2);
+    ctx.restore();
+
+    ctx.strokeStyle = "rgba(255,255,255,0.8)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
   }
+
   ctx.restore();
 }
 
@@ -711,4 +620,5 @@ upgradeClarityBtn.addEventListener("click", upgradeClarity);
 
 updateUI();
 preloadScene(currentScene);
+preloadItemImages();
 render();

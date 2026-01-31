@@ -229,6 +229,29 @@ const unlockedShapes = new Set(["circle"]);
 let wheelSelectedIndex = null;
 let chanceSelectedIndex = null;
 
+function playBuzzer() {
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+
+  oscillator.type = "square";
+  oscillator.frequency.value = 140;
+  gainNode.gain.value = 0.2;
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+
+  oscillator.start();
+  gainNode.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioCtx.currentTime + 0.25
+  );
+  oscillator.stop(audioCtx.currentTime + 0.25);
+  oscillator.onended = () => {
+    audioCtx.close();
+  };
+}
+
 function setStatus(message) {
   statusMessageEl.textContent = message;
 }
@@ -345,6 +368,7 @@ function startGame() {
   const selectedScene = sceneThemes[sceneSelect.value];
   if (!unlockedScenes.has(selectedScene.id)) {
     setStatus("Unlock this scene to play it.");
+    playBuzzer();
     updateUI();
     return;
   }

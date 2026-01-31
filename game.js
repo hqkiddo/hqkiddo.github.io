@@ -49,6 +49,7 @@ const modes = {
 const magnifierRadii = [70, 90, 115, 140];
 const magnifierCosts = [10, 20, 35];
 const hintCost = 5;
+const spinCost = 15;
 const shapeCosts = {
   circle: 0,
   square: 15,
@@ -243,9 +244,10 @@ function updateUI() {
   upgradeMagnifierBtn.disabled = !nextMagCost || gems < nextMagCost;
   hintBtn.disabled = !running || gems < hintCost;
   spinBtn.disabled = spinsRemaining <= 0;
-  spinWheelBtn.disabled = isSpinning || spinsRemaining <= 0;
+  spinWheelBtn.disabled =
+    isSpinning || spinsRemaining <= 0 || gems < spinCost;
   dailyBtn.disabled = false;
-  spinChanceBtn.disabled = isChanceSpinning;
+  spinChanceBtn.disabled = isChanceSpinning || gems < spinCost;
 
   const selectedShape = shapeSelect.value;
   const shapeCost = shapeCosts[selectedShape];
@@ -628,7 +630,9 @@ function openWheel() {
   wheelModal.classList.add("show");
   wheelModal.setAttribute("aria-hidden", "false");
   wheelResult.textContent = spinsRemaining
-    ? `You have ${spinsRemaining} spin${spinsRemaining === 1 ? "" : "s"} left.`
+    ? `You have ${spinsRemaining} spin${
+        spinsRemaining === 1 ? "" : "s"
+      } left. Cost: ${spinCost} gems.`
     : "No spins left this round.";
   drawWheel();
   updateUI();
@@ -637,7 +641,7 @@ function openWheel() {
 function openChanceWheel() {
   chanceModal.classList.add("show");
   chanceModal.setAttribute("aria-hidden", "false");
-  chanceResult.textContent = "Spin for a big risk or big reward.";
+  chanceResult.textContent = `Spin for a big risk or big reward. Cost: ${spinCost} gems.`;
   drawChanceWheel();
   updateUI();
 }
@@ -795,9 +799,10 @@ function applyChancePrize(prize) {
 }
 
 function spinChanceWheel() {
-  if (isChanceSpinning) {
+  if (isChanceSpinning || gems < spinCost) {
     return;
   }
+  gems -= spinCost;
   isChanceSpinning = true;
   chanceResult.textContent = "Spinning...";
   updateUI();
@@ -833,10 +838,11 @@ function spinChanceWheel() {
 }
 
 function spinWheel() {
-  if (isSpinning || spinsRemaining <= 0) {
+  if (isSpinning || spinsRemaining <= 0 || gems < spinCost) {
     return;
   }
   spinsRemaining -= 1;
+  gems -= spinCost;
   isSpinning = true;
   wheelResult.textContent = "Spinning...";
   updateUI();

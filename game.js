@@ -252,6 +252,46 @@ function playBuzzer() {
   };
 }
 
+function playRoundOver() {
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.value = 0.25;
+  gainNode.connect(audioCtx.destination);
+
+  const tones = [240, 200, 160];
+  tones.forEach((freq, index) => {
+    const oscillator = audioCtx.createOscillator();
+    oscillator.type = "sawtooth";
+    oscillator.frequency.value = freq;
+    oscillator.connect(gainNode);
+    const start = audioCtx.currentTime + index * 0.12;
+    const end = start + 0.1;
+    oscillator.start(start);
+    oscillator.stop(end);
+  });
+
+  const total = tones.length * 0.12 + 0.2;
+  setTimeout(() => audioCtx.close(), total * 1000);
+}
+
+function playWheelTick() {
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  oscillator.type = "triangle";
+  oscillator.frequency.value = 520;
+  gainNode.gain.value = 0.15;
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  oscillator.start();
+  gainNode.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioCtx.currentTime + 0.08
+  );
+  oscillator.stop(audioCtx.currentTime + 0.08);
+  oscillator.onended = () => audioCtx.close();
+}
+
 function setStatus(message) {
   statusMessageEl.textContent = message;
 }
@@ -405,6 +445,7 @@ function endGame() {
   clearInterval(timerId);
   setStatus(`Time! You found ${found} objects.`);
   targetNameEl.textContent = "Round over";
+  playRoundOver();
   updateUI();
 }
 
@@ -579,7 +620,11 @@ function buildMagnifierPath(radius, shape) {
 function unlockShape() {
   const selectedShape = shapeSelect.value;
   const cost = shapeCosts[selectedShape];
-  if (unlockedShapes.has(selectedShape) || gems < cost) {
+  if (unlockedShapes.has(selectedShape)) {
+    return;
+  }
+  if (gems < cost) {
+    playBuzzer();
     return;
   }
   gems -= cost;
@@ -591,10 +636,12 @@ function unlockShape() {
 
 function changeShape() {
   const selectedShape = shapeSelect.value;
-  if (unlockedShapes.has(selectedShape)) {
-    magnifierShape = selectedShape;
-    setStatus(`${selectedShape} magnifier selected.`);
+  if (!unlockedShapes.has(selectedShape)) {
+    playBuzzer();
+    return;
   }
+  magnifierShape = selectedShape;
+  setStatus(`${selectedShape} magnifier selected.`);
 }
 
 function getTodayKey() {
@@ -876,6 +923,9 @@ function spinChanceWheel() {
     drawChanceWheel();
 
     if (t < 1) {
+      if (Math.random() < 0.2) {
+        playWheelTick();
+      }
       requestAnimationFrame(animate);
       return;
     }
@@ -917,6 +967,9 @@ function spinWheel() {
     drawWheel();
 
     if (t < 1) {
+      if (Math.random() < 0.2) {
+        playWheelTick();
+      }
       requestAnimationFrame(animate);
       return;
     }

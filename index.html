@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Magnifying Quest</title>
+    <meta
+      name="description"
+      content="Find hidden objects with a magnifying glass."
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">HQ Kiddo</p>
+          <h1>Magnifying Quest</h1>
+        </div>
+        <div class="stats">
+          <div>
+            <span class="label">Time</span>
+            <span id="timeLeft">--</span>
+          </div>
+          <div>
+            <span class="label">Gems</span>
+            <span id="gemCount">0</span>
+          </div>
+          <div>
+            <span class="label">Found</span>
+            <span id="foundCount">0</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="controls">
+        <div class="control-group">
+          <label for="modeSelect">Mode</label>
+          <select id="modeSelect">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+          <button id="startBtn" class="primary">Start</button>
+          <button id="hintBtn" class="ghost">Hint (5 gems)</button>
+        </div>
+        <div class="control-group upgrades">
+          <div class="upgrade-card">
+            <span class="label">Magnifier</span>
+            <span id="magnifierLevel">Level 1</span>
+            <button id="upgradeMagnifierBtn">Upgrade</button>
+          </div>
+          <div class="upgrade-card">
+            <span class="label">Picture</span>
+            <span id="clarityLevel">Level 1</span>
+            <button id="upgradeClarityBtn">Upgrade</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="board">
+        <div class="card">
+          <p class="label">Card</p>
+          <h2 id="targetName">Press Start</h2>
+          <p class="card-subtext">
+            Move the magnifier and tap the object on the card to find it.
+          </p>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="scene" width="900" height="550"></canvas>
+          <div id="statusMessage" class="status">Pick a mode and start.</div>
+        </div>
+      </section>
+
+      <section class="rules">
+        <h3>How it works</h3>
+        <ul>
+          <li>Tap the object you are trying to find to count it.</li>
+          <li>
+            The magnifier follows your mouse, or your finger when you touch and
+            hold.
+          </li>
+          <li>Easy: 1 minute 15 seconds, 1 gem per find.</li>
+          <li>Medium: 45 seconds, 5 gems per find.</li>
+          <li>Hard: 25 seconds, 10 gems per find.</li>
+          <li>Hints cost gems and briefly point to the target.</li>
+          <li>Hidden gems sometimes appear in the picture.</li>
+        </ul>
+      </section>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>

@@ -21,6 +21,26 @@
         </div>
       </header>
 
+      <section class="theme-controls">
+        <div>
+          <p class="label">Background Color</p>
+          <div class="theme-row">
+            <input
+              id="bgColorPicker"
+              class="color-input"
+              type="color"
+              value="#0f1118"
+              aria-label="Pick background color"
+            />
+            <button class="ghost" data-bg="#0f1118">Night</button>
+            <button class="ghost" data-bg="#102a43">Ocean</button>
+            <button class="ghost" data-bg="#2a1f3d">Purple</button>
+            <button class="ghost" data-bg="#1b3a2b">Forest</button>
+            <button class="ghost" data-bg="#3b2a1b">Desert</button>
+          </div>
+        </div>
+      </section>
+
       <section class="menu-grid">
         <a class="menu-card" href="magnifying.html">
           <h2>Magnifying Quest</h2>
@@ -38,5 +58,37 @@
         <p>© 2026 Hayley H</p>
       </footer>
     </div>
+
+    <script>
+      const colorPicker = document.getElementById("bgColorPicker");
+      const presetButtons = Array.from(document.querySelectorAll("[data-bg]"));
+      const storageKey = "hqkiddo-menu-bg";
+
+      function applyBackground(color) {
+        document.documentElement.style.backgroundColor = color;
+        document.body.style.backgroundColor = color;
+      }
+
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        colorPicker.value = saved;
+        applyBackground(saved);
+      }
+
+      colorPicker.addEventListener("input", (event) => {
+        const color = event.target.value;
+        applyBackground(color);
+        localStorage.setItem(storageKey, color);
+      });
+
+      presetButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const color = button.dataset.bg;
+          colorPicker.value = color;
+          applyBackground(color);
+          localStorage.setItem(storageKey, color);
+        });
+      });
+    </script>
   </body>
 </html>

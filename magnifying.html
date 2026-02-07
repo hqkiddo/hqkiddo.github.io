@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Magnifying Quest</title>
+    <meta
+      name="description"
+      content="Find hidden objects with a magnifying glass."
+    />
+    <link rel="stylesheet" href="magnifying.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">HQ Kiddo</p>
+          <a class="back-link" href="index.html">← Menu</a>
+          <h1>Magnifying Quest</h1>
+        </div>
+        <div class="stats">
+          <div>
+            <span class="label">Time</span>
+            <span id="timeLeft">--</span>
+          </div>
+          <div class="stat-gems">
+            <span class="label">Gems</span>
+            <span class="stat-value">
+              <svg
+                class="gem-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M12 2 4 9l8 13 8-13-8-7Zm0 4 3.8 3.4L12 19 8.2 9.4 12 6Z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span id="gemCount">0</span>
+            </span>
+          </div>
+          <div>
+            <span class="label">Items Found</span>
+            <span id="foundCount">0</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="controls">
+        <div class="control-group">
+          <label for="sceneSelect">Scene</label>
+          <select id="sceneSelect">
+            <option value="park">Sunny Park</option>
+            <option value="beach">Golden Beach</option>
+            <option value="city">City Streets</option>
+            <option value="meadow">Wild Meadow</option>
+            <option value="forest">Forest Lake</option>
+            <option value="lake">Sunset Lake</option>
+            <option value="desert">Desert Dunes</option>
+          </select>
+          <button id="unlockSceneBtn" class="ghost">Unlock</button>
+          <label for="modeSelect">Mode</label>
+          <select id="modeSelect">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+          <button id="startBtn" class="primary">Start</button>
+          <button id="hintBtn" class="ghost">Hint (5 gems)</button>
+          <button id="fullscreenBtn" class="ghost">Fullscreen</button>
+          <button id="spinBtn" class="ghost">Spin Wheel</button>
+          <button id="dailyBtn" class="ghost">Daily Power-Up</button>
+          <button id="chanceBtn" class="ghost">Chance Wheel</button>
+        </div>
+        <div class="control-group upgrades">
+          <div class="upgrade-card">
+            <span class="label">Magnifier</span>
+            <span id="magnifierLevel">Level 1</span>
+            <button id="upgradeMagnifierBtn">Upgrade</button>
+          </div>
+          <div class="upgrade-card">
+            <span class="label">Magnifier Shape</span>
+            <select id="shapeSelect">
+              <option value="circle">Circle</option>
+              <option value="square">Square</option>
+              <option value="rounded">Rounded</option>
+              <option value="hex">Hex</option>
+            </select>
+            <button id="unlockShapeBtn">Unlock</button>
+          </div>
+          <div id="statusMessage" class="status">Pick a mode and start.</div>
+        </div>
+      </section>
+
+      <section class="board">
+        <div class="card">
+          <p class="label">Card</p>
+          <h2 id="targetName">Press Start</h2>
+          <p class="card-subtext">
+            Move the magnifier and tap the object on the card to find it.
+          </p>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="scene" width="900" height="550"></canvas>
+        </div>
+      </section>
+
+      <section class="rules">
+        <h3>How it works</h3>
+        <ul>
+          <li>Tap the object you are trying to find to count it.</li>
+          <li>
+            The magnifier follows your mouse, or your finger when you touch and
+            hold.
+          </li>
+          <li>Unlock new scenes with gems to play them.</li>
+          <li>Easy: 1 minute 15 seconds, 1 gem per find.</li>
+          <li>Medium: 45 seconds, 5 gems per find.</li>
+          <li>Hard: 25 seconds, 10 gems per find.</li>
+          <li>Hints cost gems and briefly point to the target.</li>
+          <li>Hidden gems sometimes appear in the picture.</li>
+          <li>Spin the prize wheel once per round for bonuses.</li>
+          <li>Claim a daily power-up once per day.</li>
+          <li>Try the chance wheel for big rewards or big risks.</li>
+        </ul>
+      </section>
+
+      <footer class="footer">
+        <p>© 2026 Hayley H</p>
+      </footer>
+    </div>
+
+    <div id="wheelModal" class="modal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Prize Wheel</h3>
+          <button id="closeWheelBtn" class="ghost">Close</button>
+        </div>
+        <p class="modal-subtext">
+          Spin for prizes like gems, extra time, or a free hint.
+        </p>
+        <div class="wheel-wrap">
+          <canvas id="wheelCanvas" width="360" height="360"></canvas>
+          <div class="wheel-pointer"></div>
+        </div>
+        <button id="spinWheelBtn" class="primary">Spin</button>
+        <p id="wheelResult" class="modal-subtext"></p>
+      </div>
+    </div>
+
+    <div id="dailyModal" class="modal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Daily Power-Up</h3>
+          <button id="closeDailyBtn" class="ghost">Close</button>
+        </div>
+        <p class="modal-subtext">
+          Claim a free power-up once per day.
+        </p>
+        <div class="card">
+          <p id="dailyStatus" class="card-subtext"></p>
+        </div>
+        <button id="claimDailyBtn" class="primary">Claim</button>
+      </div>
+    </div>
+
+    <div id="chanceModal" class="modal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Chance Wheel</h3>
+          <button id="closeChanceBtn" class="ghost">Close</button>
+        </div>
+        <p class="modal-subtext">
+          Big risk, big reward. Good or not good at all.
+        </p>
+        <div class="wheel-wrap">
+          <canvas id="chanceCanvas" width="360" height="360"></canvas>
+          <div class="wheel-pointer"></div>
+        </div>
+        <button id="spinChanceBtn" class="primary">Spin</button>
+        <p id="chanceResult" class="modal-subtext"></p>
+      </div>
+    </div>
+
+    <script src="magnifying.js"></script>
+  </body>
+</html>

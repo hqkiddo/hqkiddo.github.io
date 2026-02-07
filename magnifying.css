@@ -17,8 +17,12 @@ body {
   margin: 0;
 }
 
-button {
+button,
+select {
   font: inherit;
+}
+
+button {
   cursor: pointer;
 }
 
@@ -56,12 +60,6 @@ button {
   text-decoration: underline;
 }
 
-.subtitle {
-  margin: 10px 0 0;
-  max-width: 460px;
-  color: #c3c9df;
-}
-
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -72,8 +70,7 @@ button {
 
 .stats {
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
+  gap: 16px;
   background: rgba(255, 255, 255, 0.08);
   padding: 12px 16px;
   border-radius: 16px;
@@ -84,6 +81,18 @@ button {
   display: flex;
   flex-direction: column;
   min-width: 70px;
+}
+
+.stat-gems .stat-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gem-icon {
+  width: 18px;
+  height: 18px;
+  color: #65f9ff;
 }
 
 .label {
@@ -109,6 +118,7 @@ button {
   gap: 12px;
 }
 
+select,
 button {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -129,9 +139,53 @@ button.ghost {
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+#fullscreenBtn {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+#sceneSelect {
+  min-width: 160px;
+}
+
+#unlockSceneBtn {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+#spinBtn {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+#dailyBtn {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+#chanceBtn {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+#chanceCanvas {
+  width: 320px;
+  height: 320px;
+  max-width: 100%;
+}
+
+.upgrades {
+  gap: 10px;
+  align-items: stretch;
+}
+
+.upgrade-card {
+  display: grid;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  min-width: 150px;
+}
+
+#shapeSelect {
+  min-width: 140px;
 }
 
 .board {
@@ -148,14 +202,13 @@ button:disabled {
 }
 
 .card h2 {
-  margin: 8px 0 12px;
+  margin: 8px 0;
   font-size: 1.6rem;
 }
 
-.card ul {
+.card-subtext {
+  color: #c3c9df;
   margin: 0;
-  padding-left: 18px;
-  color: #cdd3ea;
 }
 
 .canvas-wrap {
@@ -184,6 +237,84 @@ canvas {
   align-self: center;
 }
 
+.rules {
+  margin-top: 24px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10;
+  padding: 20px;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-card {
+  width: min(480px, 100%);
+  background: #141824;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-header h3 {
+  margin: 0;
+}
+
+.modal-subtext {
+  margin: 0;
+  color: #c3c9df;
+}
+
+.wheel-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.wheel-pointer {
+  position: absolute;
+  top: -6px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 18px solid #fe7a57;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+}
+
+#wheelCanvas {
+  width: 320px;
+  height: 320px;
+  max-width: 100%;
+}
+
+.rules ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: #cdd3ea;
+}
+
 .footer {
   margin-top: 28px;
   color: #9da6c7;
@@ -192,7 +323,7 @@ canvas {
 
 @media (min-width: 900px) {
   .board {
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 300px 1fr;
     align-items: start;
   }
 }

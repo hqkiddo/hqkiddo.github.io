@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Penguin Miner</title>
+    <meta
+      name="description"
+      content="Mine gold with a penguin, sell it, and upgrade your pickaxe."
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">HQ Kiddo</p>
+          <a class="back-link" href="index.html">← Menu</a>
+          <h1>Penguin Miner</h1>
+          <p class="subtitle">
+            Mine gold, sell it, upgrade your pickaxe, and find fish to reach new
+            levels.
+          </p>
+        </div>
+        <div class="stats">
+          <div>
+            <span class="label">Level</span>
+            <span id="levelValue">1</span>
+          </div>
+          <div>
+            <span class="label">Gold</span>
+            <span id="goldValue">0</span>
+          </div>
+          <div>
+            <span class="label">Coins</span>
+            <span id="coinValue">0</span>
+          </div>
+          <div>
+            <span class="label">Fish</span>
+            <span id="fishValue">0</span>
+          </div>
+          <div>
+            <span class="label">Pickaxe</span>
+            <span id="pickaxeValue">Lv 1</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="controls">
+        <div class="control-group">
+          <button id="startBtn" class="primary">Start Mining</button>
+          <button id="sellBtn" class="ghost">Sell Gold</button>
+          <button id="upgradeBtn" class="ghost">Upgrade Pickaxe</button>
+        </div>
+        <div id="statusMessage" class="status">Click Start to begin.</div>
+      </section>
+
+      <section class="board">
+        <div class="card">
+          <h2>How to Play</h2>
+          <ul>
+            <li>Click tiles to mine. Gold tiles give gold.</li>
+            <li>Sell gold for coins, then upgrade your pickaxe.</li>
+            <li>Finding the fish moves you to the next level.</li>
+            <li>Each level hides more gold.</li>
+          </ul>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="mineCanvas" width="900" height="520"></canvas>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>© 2026 Hayley H</p>
+      </footer>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>

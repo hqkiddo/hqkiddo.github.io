@@ -184,6 +184,14 @@
       </div>
     </div>
 
+    <script>
+      const storageKey = "hqkiddo-menu-bg";
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        document.documentElement.style.backgroundColor = saved;
+        document.body.style.backgroundColor = saved;
+      }
+    </script>
     <script src="magnifying.js"></script>
   </body>
 </html>

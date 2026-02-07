@@ -98,6 +98,14 @@
       </div>
     </div>
 
+    <script>
+      const storageKey = "hqkiddo-menu-bg";
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        document.documentElement.style.backgroundColor = saved;
+        document.body.style.backgroundColor = saved;
+      }
+    </script>
     <script src="game.js?v=2"></script>
   </body>
 </html>

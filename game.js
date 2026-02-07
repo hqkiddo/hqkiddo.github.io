@@ -1,5 +1,5 @@
 const canvas = document.getElementById("mineCanvas");
-const ctx = canvas.getContext("2d");
+const ctx = canvas ? canvas.getContext("2d") : null;
 
 const levelValue = document.getElementById("levelValue");
 const ironValue = document.getElementById("ironValue");
@@ -14,6 +14,11 @@ const openShopBtn = document.getElementById("openShopBtn");
 const shopModal = document.getElementById("shopModal");
 const closeShopBtn = document.getElementById("closeShopBtn");
 const shopList = document.getElementById("shopList");
+
+if (!canvas || !ctx || !startBtn || !statusMessage) {
+  // Required elements missing; avoid crashing the page.
+  console.warn("Penguin Miner: missing required elements.");
+}
 
 const grid = {
   cols: 10,
@@ -910,16 +915,18 @@ function render() {
   requestAnimationFrame(render);
 }
 
-canvas.addEventListener("click", handleClick);
-startBtn.addEventListener("click", resetGame);
-openShopBtn.addEventListener("click", openShop);
-closeShopBtn.addEventListener("click", closeShop);
-shopModal.addEventListener("click", (event) => {
-  if (event.target === shopModal) {
-    closeShop();
-  }
-});
+if (canvas && ctx && startBtn && statusMessage) {
+  canvas.addEventListener("click", handleClick);
+  startBtn.addEventListener("click", resetGame);
+  openShopBtn?.addEventListener("click", openShop);
+  closeShopBtn?.addEventListener("click", closeShop);
+  shopModal?.addEventListener("click", (event) => {
+    if (event.target === shopModal) {
+      closeShop();
+    }
+  });
 
-createIdleGrid();
-updateUI();
-render();
+  createIdleGrid();
+  updateUI();
+  render();
+}

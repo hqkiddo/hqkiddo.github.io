@@ -19,8 +19,8 @@
           <a class="back-link" href="index.html">← Menu</a>
           <h1>Penguin Miner</h1>
           <p class="subtitle">
-            Mine gold, sell it, visit the shop, and find fish to reach new
-            levels.
+            Mine materials, craft better pickaxes in the shop, and find fish to
+            reach new levels.
           </p>
         </div>
         <div class="stats">
@@ -29,12 +29,20 @@
             <span id="levelValue">1</span>
           </div>
           <div>
+            <span class="label">Iron</span>
+            <span id="ironValue">0</span>
+          </div>
+          <div>
+            <span class="label">Silver</span>
+            <span id="silverValue">0</span>
+          </div>
+          <div>
             <span class="label">Gold</span>
             <span id="goldValue">0</span>
           </div>
           <div>
-            <span class="label">Coins</span>
-            <span id="coinValue">0</span>
+            <span class="label">Crystal</span>
+            <span id="crystalValue">0</span>
           </div>
           <div>
             <span class="label">Fish</span>
@@ -50,7 +58,6 @@
       <section class="controls">
         <div class="control-group">
           <button id="startBtn" class="primary">Start Mining</button>
-          <button id="sellBtn" class="ghost">Sell Gold</button>
         </div>
         <div id="statusMessage" class="status">Click Start to begin.</div>
       </section>
@@ -61,8 +68,8 @@
             <h2>How to Play</h2>
             <ul>
               <li>Tap a tile and your penguin walks there to mine.</li>
-              <li>Gold tiles give gold. Sell gold for coins.</li>
-              <li>Visit the shop for upgrades.</li>
+              <li>Different tiles give different materials.</li>
+              <li>Visit the shop to buy better pickaxes.</li>
               <li>Finding the fish moves you to the next level.</li>
             </ul>
           </div>
@@ -70,21 +77,33 @@
             <h2>Shop</h2>
             <div class="shop-row">
               <div>
-                <p class="shop-title">Pickaxe Upgrade</p>
-                <p class="shop-subtext">Mine more gold per hit.</p>
+                <p class="shop-title">Stone Pickaxe</p>
+                <p class="shop-subtext">Cost: 6 iron</p>
               </div>
-              <button id="buyPickaxeBtn" class="ghost">
-                Buy (<span id="pickaxeCost">0</span> coins)
-              </button>
+              <button class="ghost" data-pickaxe="1">Buy</button>
             </div>
             <div class="shop-row">
               <div>
-                <p class="shop-title">Speed Boots</p>
-                <p class="shop-subtext">Move faster between tiles.</p>
+                <p class="shop-title">Iron Pickaxe</p>
+                <p class="shop-subtext">Cost: 10 iron, 4 silver</p>
               </div>
-              <button id="buyBootsBtn" class="ghost">
-                Buy (<span id="bootsCost">0</span> coins)
-              </button>
+              <button class="ghost" data-pickaxe="2">Buy</button>
+            </div>
+            <div class="shop-row">
+              <div>
+                <p class="shop-title">Gold Pickaxe</p>
+                <p class="shop-subtext">Cost: 8 iron, 6 silver, 4 gold</p>
+              </div>
+              <button class="ghost" data-pickaxe="3">Buy</button>
+            </div>
+            <div class="shop-row">
+              <div>
+                <p class="shop-title">Crystal Pickaxe</p>
+                <p class="shop-subtext">
+                  Cost: 10 iron, 8 silver, 6 gold, 2 crystal
+                </p>
+              </div>
+              <button class="ghost" data-pickaxe="4">Buy</button>
             </div>
           </div>
         </div>

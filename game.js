@@ -646,9 +646,10 @@ function drawPenguin() {
   ctx.save();
   ctx.translate(penguin.x, penguin.y);
   const skin = shopItems.find((item) => item.id === equippedSkin);
-  const bodyColor = skin?.palette?.body || "#0f1118";
-  const bellyColor = skin?.palette?.belly || "#f5f6fb";
-  const beakColor = skin?.palette?.beak || "#ffb454";
+  const palette = skin && skin.palette ? skin.palette : {};
+  const bodyColor = palette.body || "#0f1118";
+  const bellyColor = palette.belly || "#f5f6fb";
+  const beakColor = palette.beak || "#ffb454";
   ctx.globalAlpha = 0.35;
   ctx.fillStyle = "#0b0d12";
   ctx.beginPath();
@@ -918,13 +919,19 @@ function render() {
 if (canvas && ctx && startBtn && statusMessage) {
   canvas.addEventListener("click", handleClick);
   startBtn.addEventListener("click", resetGame);
-  openShopBtn?.addEventListener("click", openShop);
-  closeShopBtn?.addEventListener("click", closeShop);
-  shopModal?.addEventListener("click", (event) => {
-    if (event.target === shopModal) {
-      closeShop();
-    }
-  });
+  if (openShopBtn) {
+    openShopBtn.addEventListener("click", openShop);
+  }
+  if (closeShopBtn) {
+    closeShopBtn.addEventListener("click", closeShop);
+  }
+  if (shopModal) {
+    shopModal.addEventListener("click", (event) => {
+      if (event.target === shopModal) {
+        closeShop();
+      }
+    });
+  }
 
   createIdleGrid();
   updateUI();

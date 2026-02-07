@@ -10,9 +10,10 @@ const fishValue = document.getElementById("fishValue");
 const pickaxeValue = document.getElementById("pickaxeValue");
 const statusMessage = document.getElementById("statusMessage");
 const startBtn = document.getElementById("startBtn");
-const pickaxeButtons = Array.from(
-  document.querySelectorAll("[data-pickaxe]")
-);
+const openShopBtn = document.getElementById("openShopBtn");
+const shopModal = document.getElementById("shopModal");
+const closeShopBtn = document.getElementById("closeShopBtn");
+const shopList = document.getElementById("shopList");
 
 const grid = {
   cols: 10,
@@ -113,6 +114,117 @@ const pickaxeTiers = [
     power: 5,
     cost: { iron: 10, silver: 8, gold: 6, crystal: 2 },
   },
+  {
+    name: "Aurora Pickaxe",
+    power: 6,
+    cost: { iron: 14, silver: 10, gold: 8, crystal: 4 },
+  },
+  {
+    name: "Glacier Pickaxe",
+    power: 7,
+    cost: { iron: 18, silver: 14, gold: 10, crystal: 6 },
+  },
+];
+
+const shopItems = [
+  {
+    id: "pickaxe-1",
+    type: "pickaxe",
+    tier: 1,
+    name: "Stone Pickaxe",
+    description: "Mine 2 materials per hit.",
+  },
+  {
+    id: "pickaxe-2",
+    type: "pickaxe",
+    tier: 2,
+    name: "Iron Pickaxe",
+    description: "Mine 3 materials per hit.",
+  },
+  {
+    id: "pickaxe-3",
+    type: "pickaxe",
+    tier: 3,
+    name: "Gold Pickaxe",
+    description: "Mine 4 materials per hit.",
+  },
+  {
+    id: "pickaxe-4",
+    type: "pickaxe",
+    tier: 4,
+    name: "Crystal Pickaxe",
+    description: "Mine 5 materials per hit.",
+  },
+  {
+    id: "pickaxe-5",
+    type: "pickaxe",
+    tier: 5,
+    name: "Aurora Pickaxe",
+    description: "Mine 6 materials per hit.",
+  },
+  {
+    id: "pickaxe-6",
+    type: "pickaxe",
+    tier: 6,
+    name: "Glacier Pickaxe",
+    description: "Mine 7 materials per hit.",
+  },
+  {
+    id: "skin-classic",
+    type: "skin",
+    name: "Classic Penguin",
+    description: "The original explorer look.",
+    cost: { iron: 0, silver: 0, gold: 0, crystal: 0 },
+    palette: { body: "#0f1118", belly: "#f5f6fb", beak: "#ffb454" },
+  },
+  {
+    id: "skin-snow",
+    type: "skin",
+    name: "Snow Captain",
+    description: "Bright snowy feathers.",
+    cost: { iron: 6, silver: 2, gold: 0, crystal: 0 },
+    palette: { body: "#1b1f2a", belly: "#ffffff", beak: "#ffb454" },
+  },
+  {
+    id: "skin-midnight",
+    type: "skin",
+    name: "Midnight Diver",
+    description: "Deep ocean colors.",
+    cost: { iron: 8, silver: 4, gold: 2, crystal: 0 },
+    palette: { body: "#0b0e18", belly: "#dbe5ff", beak: "#ffa34d" },
+  },
+  {
+    id: "skin-sunset",
+    type: "skin",
+    name: "Sunset Skater",
+    description: "Warm sunset feathers.",
+    cost: { iron: 10, silver: 6, gold: 4, crystal: 0 },
+    palette: { body: "#2b1b1b", belly: "#ffe9d6", beak: "#ff9a3d" },
+  },
+  {
+    id: "scarf-red",
+    type: "clothes",
+    slot: "scarf",
+    name: "Warm Scarf",
+    description: "A cozy scarf for cold caves.",
+    cost: { iron: 4, silver: 2, gold: 0, crystal: 0 },
+  },
+  {
+    id: "hat-knit",
+    type: "clothes",
+    slot: "hat",
+    name: "Knit Hat",
+    description: "Keeps your penguin warm.",
+    cost: { iron: 6, silver: 4, gold: 0, crystal: 0 },
+  },
+  {
+    id: "goggles",
+    type: "clothes",
+    slot: "face",
+    name: "Mining Goggles",
+    description: "Shiny goggles for the mine.",
+    cost: { iron: 6, silver: 2, gold: 2, crystal: 0 },
+  },
 ];
 
 let tiles = [];
@@ -125,6 +237,9 @@ let penguin = { x: 90, y: canvas.height - 90 };
 let penguinTarget = null;
 let pendingMineIndex = null;
 let currentTheme = levelThemes[0];
+let ownedItems = new Set(["skin-classic"]);
+let equippedSkin = "skin-classic";
+let equippedClothes = { scarf: null, hat: null, face: null };
 
 const penguinSpeed = 3.5;
 
@@ -144,19 +259,6 @@ function updateUI() {
   crystalValue.textContent = materials.crystal.toString();
   fishValue.textContent = fishFound.toString();
   pickaxeValue.textContent = pickaxeTiers[pickaxeLevel].name;
-
-  pickaxeButtons.forEach((button) => {
-    const tier = Number(button.dataset.pickaxe);
-    const isOwned = tier <= pickaxeLevel;
-    const cost = pickaxeTiers[tier].cost;
-    const canAfford =
-      materials.iron >= cost.iron &&
-      materials.silver >= cost.silver &&
-      materials.gold >= cost.gold &&
-      materials.crystal >= cost.crystal;
-    button.disabled = isOwned || !canAfford;
-    button.textContent = isOwned ? "Owned" : "Buy";
-  });
 
   startBtn.textContent = running ? "Restart" : "Start Mining";
 }
@@ -244,6 +346,145 @@ function buyPickaxe(tier) {
   pickaxeLevel = tier;
   setStatus(`${pickaxeTiers[tier].name} equipped!`);
   updateUI();
+}
+
+function formatCost(cost) {
+  const parts = [];
+  if (cost.iron) parts.push(`${cost.iron} iron`);
+  if (cost.silver) parts.push(`${cost.silver} silver`);
+  if (cost.gold) parts.push(`${cost.gold} gold`);
+  if (cost.crystal) parts.push(`${cost.crystal} crystal`);
+  return parts.length ? `Cost: ${parts.join(", ")}` : "Free";
+}
+
+function canAfford(cost) {
+  return (
+    materials.iron >= cost.iron &&
+    materials.silver >= cost.silver &&
+    materials.gold >= cost.gold &&
+    materials.crystal >= cost.crystal
+  );
+}
+
+function buyShopItem(item) {
+  if (item.type === "pickaxe") {
+    buyPickaxe(item.tier);
+    renderShop();
+    return;
+  }
+
+  if (ownedItems.has(item.id)) {
+    if (item.type === "skin") {
+      equippedSkin = item.id;
+      setStatus(`${item.name} equipped!`);
+    } else if (item.type === "clothes") {
+      equippedClothes[item.slot] = item.id;
+      setStatus(`${item.name} equipped!`);
+    }
+    renderShop();
+    return;
+  }
+
+  if (!canAfford(item.cost)) {
+    setStatus("You need more materials to buy that.");
+    return;
+  }
+
+  materials.iron -= item.cost.iron;
+  materials.silver -= item.cost.silver;
+  materials.gold -= item.cost.gold;
+  materials.crystal -= item.cost.crystal;
+  ownedItems.add(item.id);
+
+  if (item.type === "skin") {
+    equippedSkin = item.id;
+  } else if (item.type === "clothes") {
+    equippedClothes[item.slot] = item.id;
+  }
+  setStatus(`${item.name} purchased!`);
+  updateUI();
+  renderShop();
+}
+
+function renderShopSection(title, items) {
+  const section = document.createElement("div");
+  const header = document.createElement("h4");
+  header.className = "shop-section-title";
+  header.textContent = title;
+  section.appendChild(header);
+
+  items.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "shop-item";
+
+    const info = document.createElement("div");
+    const name = document.createElement("h4");
+    name.textContent = item.name;
+    const desc = document.createElement("p");
+    const cost = item.type === "pickaxe"
+      ? formatCost(pickaxeTiers[item.tier].cost)
+      : formatCost(item.cost);
+    desc.textContent = `${item.description} • ${cost}`;
+    info.appendChild(name);
+    info.appendChild(desc);
+
+    const button = document.createElement("button");
+    button.className = "ghost";
+    let label = "Buy";
+    let disabled = false;
+
+    if (item.type === "pickaxe") {
+      const isOwned = item.tier <= pickaxeLevel;
+      const canBuy = canAfford(pickaxeTiers[item.tier].cost);
+      label = isOwned ? "Owned" : "Buy";
+      disabled = isOwned || !canBuy;
+    } else {
+      const isOwned = ownedItems.has(item.id);
+      const isEquipped =
+        (item.type === "skin" && equippedSkin === item.id) ||
+        (item.type === "clothes" && equippedClothes[item.slot] === item.id);
+      if (isEquipped) {
+        label = "Equipped";
+        disabled = true;
+      } else if (isOwned) {
+        label = "Equip";
+      } else {
+        label = "Buy";
+        disabled = !canAfford(item.cost);
+      }
+    }
+
+    button.textContent = label;
+    button.disabled = disabled;
+    button.addEventListener("click", () => buyShopItem(item));
+
+    row.appendChild(info);
+    row.appendChild(button);
+    section.appendChild(row);
+  });
+
+  return section;
+}
+
+function renderShop() {
+  shopList.innerHTML = "";
+  const pickaxeItems = shopItems.filter((item) => item.type === "pickaxe");
+  const skins = shopItems.filter((item) => item.type === "skin");
+  const clothes = shopItems.filter((item) => item.type === "clothes");
+  shopList.appendChild(renderShopSection("Pickaxes", pickaxeItems));
+  shopList.appendChild(renderShopSection("Penguin Skins", skins));
+  shopList.appendChild(renderShopSection("Clothes", clothes));
+}
+
+function openShop() {
+  renderShop();
+  shopModal.classList.add("show");
+  shopModal.setAttribute("aria-hidden", "false");
+}
+
+function closeShop() {
+  shopModal.classList.remove("show");
+  shopModal.setAttribute("aria-hidden", "true");
 }
 
 function nextLevel() {
@@ -399,6 +640,10 @@ function drawFish(centerX, centerY, size) {
 function drawPenguin() {
   ctx.save();
   ctx.translate(penguin.x, penguin.y);
+  const skin = shopItems.find((item) => item.id === equippedSkin);
+  const bodyColor = skin?.palette?.body || "#0f1118";
+  const bellyColor = skin?.palette?.belly || "#f5f6fb";
+  const beakColor = skin?.palette?.beak || "#ffb454";
   ctx.globalAlpha = 0.35;
   ctx.fillStyle = "#0b0d12";
   ctx.beginPath();
@@ -408,7 +653,7 @@ function drawPenguin() {
 
   const bodyGradient = ctx.createRadialGradient(0, -10, 12, 0, 10, 70);
   bodyGradient.addColorStop(0, "#2a2f3b");
-  bodyGradient.addColorStop(1, "#0f1118");
+  bodyGradient.addColorStop(1, bodyColor);
   ctx.fillStyle = bodyGradient;
   ctx.beginPath();
   ctx.ellipse(0, 4, 42, 56, 0, 0, Math.PI * 2);
@@ -419,7 +664,7 @@ function drawPenguin() {
   ctx.ellipse(-16, -10, 14, 22, 0.2, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = "#1d2230";
+  ctx.fillStyle = bodyColor;
   ctx.beginPath();
   ctx.ellipse(-44, 6, 18, 28, -0.35, 0, Math.PI * 2);
   ctx.ellipse(44, 6, 18, 28, 0.35, 0, Math.PI * 2);
@@ -427,13 +672,13 @@ function drawPenguin() {
 
   const bellyGradient = ctx.createRadialGradient(0, 22, 6, 0, 26, 40);
   bellyGradient.addColorStop(0, "#ffffff");
-  bellyGradient.addColorStop(1, "#dbe2f0");
+  bellyGradient.addColorStop(1, bellyColor);
   ctx.fillStyle = bellyGradient;
   ctx.beginPath();
   ctx.ellipse(0, 20, 28, 38, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = "#ff9a3d";
+  ctx.fillStyle = beakColor;
   ctx.beginPath();
   ctx.ellipse(-16, 52, 14, 6, 0.05, 0, Math.PI * 2);
   ctx.ellipse(16, 52, 14, 6, -0.05, 0, Math.PI * 2);
@@ -444,7 +689,7 @@ function drawPenguin() {
   ctx.ellipse(0, -42, 24, 22, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = "#ffb454";
+  ctx.fillStyle = beakColor;
   ctx.beginPath();
   ctx.moveTo(0, -26);
   ctx.lineTo(16, -18);
@@ -475,6 +720,41 @@ function drawPenguin() {
   ctx.beginPath();
   ctx.arc(0, -18, 12, 0.1 * Math.PI, 0.9 * Math.PI);
   ctx.stroke();
+
+  if (equippedClothes.scarf) {
+    ctx.fillStyle = "#e04d4d";
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 30, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(8, 8, 10, 26);
+  }
+
+  if (equippedClothes.hat) {
+    ctx.fillStyle = "#4d7cff";
+    ctx.beginPath();
+    ctx.arc(0, -56, 18, Math.PI, 0);
+    ctx.lineTo(18, -44);
+    ctx.lineTo(-18, -44);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(0, -60, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (equippedClothes.face) {
+    ctx.strokeStyle = "#3a3f4f";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(-9, -32, 8, 0, Math.PI * 2);
+    ctx.arc(9, -32, 8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-1, -32);
+    ctx.lineTo(1, -32);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -632,11 +912,12 @@ function render() {
 
 canvas.addEventListener("click", handleClick);
 startBtn.addEventListener("click", resetGame);
-pickaxeButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    const tier = Number(button.dataset.pickaxe);
-    buyPickaxe(tier);
-  });
+openShopBtn.addEventListener("click", openShop);
+closeShopBtn.addEventListener("click", closeShop);
+shopModal.addEventListener("click", (event) => {
+  if (event.target === shopModal) {
+    closeShop();
+  }
 });
 
 createIdleGrid();

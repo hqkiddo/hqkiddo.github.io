@@ -58,6 +58,7 @@
       <section class="controls">
         <div class="control-group">
           <button id="startBtn" class="primary">Start Mining</button>
+          <button id="openShopBtn" class="ghost">Open Shop</button>
         </div>
         <div id="statusMessage" class="status">Click Start to begin.</div>
       </section>
@@ -69,42 +70,9 @@
             <ul>
               <li>Tap a tile and your penguin walks there to mine.</li>
               <li>Different tiles give different materials.</li>
-              <li>Visit the shop to buy better pickaxes.</li>
+              <li>Open the shop to buy pickaxes and penguin gear.</li>
               <li>Finding the fish moves you to the next level.</li>
             </ul>
-          </div>
-          <div class="card shop-card">
-            <h2>Shop</h2>
-            <div class="shop-row">
-              <div>
-                <p class="shop-title">Stone Pickaxe</p>
-                <p class="shop-subtext">Cost: 6 iron</p>
-              </div>
-              <button class="ghost" data-pickaxe="1">Buy</button>
-            </div>
-            <div class="shop-row">
-              <div>
-                <p class="shop-title">Iron Pickaxe</p>
-                <p class="shop-subtext">Cost: 10 iron, 4 silver</p>
-              </div>
-              <button class="ghost" data-pickaxe="2">Buy</button>
-            </div>
-            <div class="shop-row">
-              <div>
-                <p class="shop-title">Gold Pickaxe</p>
-                <p class="shop-subtext">Cost: 8 iron, 6 silver, 4 gold</p>
-              </div>
-              <button class="ghost" data-pickaxe="3">Buy</button>
-            </div>
-            <div class="shop-row">
-              <div>
-                <p class="shop-title">Crystal Pickaxe</p>
-                <p class="shop-subtext">
-                  Cost: 10 iron, 8 silver, 6 gold, 2 crystal
-                </p>
-              </div>
-              <button class="ghost" data-pickaxe="4">Buy</button>
-            </div>
           </div>
         </div>
         <div class="canvas-wrap">
@@ -115,6 +83,19 @@
       <footer class="footer">
         <p>© 2026 Hayley H</p>
       </footer>
+    </div>
+
+    <div id="shopModal" class="modal" aria-hidden="true">
+      <div class="modal-card shop-modal-card">
+        <div class="modal-header">
+          <h3>Penguin Shop</h3>
+          <button id="closeShopBtn" class="ghost">Close</button>
+        </div>
+        <p class="modal-subtext">
+          Buy pickaxes, outfits, and different penguins with materials.
+        </p>
+        <div id="shopList" class="shop-list"></div>
+      </div>
     </div>
 
     <script src="game.js"></script>

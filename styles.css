@@ -186,6 +186,84 @@ button:disabled {
   font-size: 0.9rem;
 }
 
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10;
+  padding: 20px;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-card {
+  width: min(720px, 100%);
+  background: #141824;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  max-height: 85vh;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-header h3 {
+  margin: 0;
+}
+
+.modal-subtext {
+  margin: 0;
+  color: #c3c9df;
+}
+
+.shop-list {
+  overflow-y: auto;
+  display: grid;
+  gap: 14px;
+  padding-right: 4px;
+}
+
+.shop-section-title {
+  margin: 8px 0 4px;
+  font-size: 1rem;
+  color: #cdd3ea;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.shop-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.shop-item h4 {
+  margin: 0;
+}
+
+.shop-item p {
+  margin: 4px 0 0;
+  color: #c3c9df;
+  font-size: 0.9rem;
+}
+
 .canvas-wrap {
   position: relative;
   border-radius: 24px;

@@ -19,6 +19,59 @@ const grid = {
   rows: 6,
 };
 
+const levelThemes = [
+  {
+    name: "Snowy Cave",
+    ground: "#0f1118",
+    tileHidden: "#5b6b7a",
+    tileRevealed: "#2c303a",
+    rock: "#8c96a3",
+    gold: "#f2c14e",
+    fish: "#6ac7ff",
+    accent: "rgba(255,255,255,0.12)",
+  },
+  {
+    name: "Jungle Mine",
+    ground: "#0d1612",
+    tileHidden: "#3f5b3f",
+    tileRevealed: "#2a3b2a",
+    rock: "#7f8f6b",
+    gold: "#e0b14f",
+    fish: "#74d0ff",
+    accent: "rgba(122, 180, 120, 0.18)",
+  },
+  {
+    name: "Desert Dig",
+    ground: "#19130a",
+    tileHidden: "#7b5a3a",
+    tileRevealed: "#3b2a1b",
+    rock: "#b49a7c",
+    gold: "#ffcb5c",
+    fish: "#7fd3ff",
+    accent: "rgba(255, 210, 140, 0.16)",
+  },
+  {
+    name: "Volcano Shaft",
+    ground: "#140c0c",
+    tileHidden: "#6a2a2a",
+    tileRevealed: "#311818",
+    rock: "#a07a7a",
+    gold: "#ffb347",
+    fish: "#7bcaff",
+    accent: "rgba(255, 120, 90, 0.18)",
+  },
+  {
+    name: "Crystal Cavern",
+    ground: "#0c0d18",
+    tileHidden: "#4a4d7a",
+    tileRevealed: "#2a2c47",
+    rock: "#9aa0ff",
+    gold: "#f0d17a",
+    fish: "#88e0ff",
+    accent: "rgba(120, 140, 255, 0.18)",
+  },
+];
+
 let tiles = [];
 let level = 1;
 let gold = 0;
@@ -30,6 +83,7 @@ let penguinSpeedLevel = 1;
 let penguin = { x: 90, y: canvas.height - 90 };
 let penguinTarget = null;
 let pendingMineIndex = null;
+let currentTheme = levelThemes[0];
 
 const penguinBaseSpeed = 3.5;
 
@@ -119,11 +173,12 @@ function resetGame() {
   pickaxeLevel = 1;
   penguinSpeedLevel = 1;
   running = true;
+  currentTheme = levelThemes[0];
   generateMine();
   penguin = { x: 90, y: canvas.height - 90 };
   penguinTarget = null;
   pendingMineIndex = null;
-  setStatus("Level 1: start mining!");
+  setStatus(`Level 1: ${currentTheme.name}`);
   updateUI();
 }
 
@@ -164,8 +219,9 @@ function buyBoots() {
 function nextLevel() {
   fishFound += 1;
   level += 1;
+  currentTheme = levelThemes[(level - 1) % levelThemes.length];
   generateMine();
-  setStatus(`Fish found! Welcome to level ${level}.`);
+  setStatus(`Level ${level}: ${currentTheme.name}`);
   updateUI();
   penguinTarget = null;
   pendingMineIndex = null;
@@ -258,7 +314,7 @@ function updatePenguin() {
 function drawFish(centerX, centerY, size) {
   ctx.save();
   ctx.translate(centerX, centerY);
-  ctx.fillStyle = "#6ac7ff";
+  ctx.fillStyle = currentTheme.fish;
   ctx.beginPath();
   ctx.ellipse(0, 0, size * 0.45, size * 0.28, 0, 0, Math.PI * 2);
   ctx.fill();
@@ -368,7 +424,9 @@ function drawTile(tile, col, row, tileWidth, tileHeight) {
   const innerW = tileWidth - padding * 2;
   const innerH = tileHeight - padding * 2;
 
-  ctx.fillStyle = tile.revealed ? "#2c303a" : "#6a4b2f";
+  ctx.fillStyle = tile.revealed
+    ? currentTheme.tileRevealed
+    : currentTheme.tileHidden;
   ctx.fillRect(innerX, innerY, innerW, innerH);
   ctx.strokeStyle = "rgba(255,255,255,0.1)";
   ctx.strokeRect(innerX, innerY, innerW, innerH);
@@ -382,7 +440,7 @@ function drawTile(tile, col, row, tileWidth, tileHeight) {
   const size = Math.min(tileWidth, tileHeight) * 0.5;
 
   if (tile.type === "gold") {
-    ctx.fillStyle = "#f2c14e";
+    ctx.fillStyle = currentTheme.gold;
     ctx.beginPath();
     ctx.arc(centerX, centerY, size * 0.25, 0, Math.PI * 2);
     ctx.fill();
@@ -391,7 +449,7 @@ function drawTile(tile, col, row, tileWidth, tileHeight) {
   } else if (tile.type === "fish") {
     drawFish(centerX, centerY, size);
   } else {
-    ctx.fillStyle = "#80889b";
+    ctx.fillStyle = currentTheme.rock;
     ctx.beginPath();
     ctx.arc(centerX, centerY, size * 0.2, 0, Math.PI * 2);
     ctx.fill();
@@ -400,7 +458,7 @@ function drawTile(tile, col, row, tileWidth, tileHeight) {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#0f1118";
+  ctx.fillStyle = currentTheme.ground;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const tileWidth = canvas.width / grid.cols;
@@ -412,7 +470,7 @@ function draw() {
     drawTile(tile, col, row, tileWidth, tileHeight);
   });
 
-  ctx.fillStyle = "rgba(255,255,255,0.12)";
+  ctx.fillStyle = currentTheme.accent;
   ctx.fillRect(0, canvas.height - 70, canvas.width, 70);
 
   drawPenguin();

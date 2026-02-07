@@ -64,9 +64,24 @@
       const presetButtons = Array.from(document.querySelectorAll("[data-bg]"));
       const storageKey = "hqkiddo-menu-bg";
 
+      function getTextColor(color) {
+        const hex = color.replace("#", "");
+        if (hex.length !== 6) {
+          return "#f5f6fb";
+        }
+        const r = parseInt(hex.slice(0, 2), 16) / 255;
+        const g = parseInt(hex.slice(2, 4), 16) / 255;
+        const b = parseInt(hex.slice(4, 6), 16) / 255;
+        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        return luminance > 0.55 ? "#0f1118" : "#f5f6fb";
+      }
+
       function applyBackground(color) {
+        const textColor = getTextColor(color);
         document.documentElement.style.backgroundColor = color;
         document.body.style.backgroundColor = color;
+        document.body.style.color = textColor;
+        document.documentElement.style.color = textColor;
       }
 
       const saved = localStorage.getItem(storageKey);

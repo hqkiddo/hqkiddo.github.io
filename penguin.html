@@ -19,7 +19,7 @@
           <a class="back-link" href="index.html">← Menu</a>
           <h1>Penguin Miner</h1>
           <p class="subtitle">
-            Mine gold, sell it, upgrade your pickaxe, and find fish to reach new
+            Mine gold, sell it, visit the shop, and find fish to reach new
             levels.
           </p>
         </div>
@@ -51,20 +51,42 @@
         <div class="control-group">
           <button id="startBtn" class="primary">Start Mining</button>
           <button id="sellBtn" class="ghost">Sell Gold</button>
-          <button id="upgradeBtn" class="ghost">Upgrade Pickaxe</button>
         </div>
         <div id="statusMessage" class="status">Click Start to begin.</div>
       </section>
 
       <section class="board">
-        <div class="card">
-          <h2>How to Play</h2>
-          <ul>
-            <li>Click tiles to mine. Gold tiles give gold.</li>
-            <li>Sell gold for coins, then upgrade your pickaxe.</li>
-            <li>Finding the fish moves you to the next level.</li>
-            <li>Each level hides more gold.</li>
-          </ul>
+        <div class="side-panel">
+          <div class="card">
+            <h2>How to Play</h2>
+            <ul>
+              <li>Tap a tile and your penguin walks there to mine.</li>
+              <li>Gold tiles give gold. Sell gold for coins.</li>
+              <li>Visit the shop for upgrades.</li>
+              <li>Finding the fish moves you to the next level.</li>
+            </ul>
+          </div>
+          <div class="card shop-card">
+            <h2>Shop</h2>
+            <div class="shop-row">
+              <div>
+                <p class="shop-title">Pickaxe Upgrade</p>
+                <p class="shop-subtext">Mine more gold per hit.</p>
+              </div>
+              <button id="buyPickaxeBtn" class="ghost">
+                Buy (<span id="pickaxeCost">0</span> coins)
+              </button>
+            </div>
+            <div class="shop-row">
+              <div>
+                <p class="shop-title">Speed Boots</p>
+                <p class="shop-subtext">Move faster between tiles.</p>
+              </div>
+              <button id="buyBootsBtn" class="ghost">
+                Buy (<span id="bootsCost">0</span> coins)
+              </button>
+            </div>
+          </div>
         </div>
         <div class="canvas-wrap">
           <canvas id="mineCanvas" width="900" height="520"></canvas>

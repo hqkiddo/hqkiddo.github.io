@@ -9,7 +9,10 @@ const pickaxeValue = document.getElementById("pickaxeValue");
 const statusMessage = document.getElementById("statusMessage");
 const startBtn = document.getElementById("startBtn");
 const sellBtn = document.getElementById("sellBtn");
-const upgradeBtn = document.getElementById("upgradeBtn");
+const buyPickaxeBtn = document.getElementById("buyPickaxeBtn");
+const buyBootsBtn = document.getElementById("buyBootsBtn");
+const pickaxeCostEl = document.getElementById("pickaxeCost");
+const bootsCostEl = document.getElementById("bootsCost");
 
 const grid = {
   cols: 10,
@@ -23,6 +26,12 @@ let coins = 0;
 let fishFound = 0;
 let pickaxeLevel = 1;
 let running = false;
+let penguinSpeedLevel = 1;
+let penguin = { x: 90, y: canvas.height - 90 };
+let penguinTarget = null;
+let pendingMineIndex = null;
+
+const penguinBaseSpeed = 3.5;
 
 function setStatus(message) {
   statusMessage.textContent = message;
@@ -36,6 +45,14 @@ function getGoldGain() {
   return pickaxeLevel;
 }
 
+function getBootsCost() {
+  return 18 + (penguinSpeedLevel - 1) * 14;
+}
+
+function getPenguinSpeed() {
+  return penguinBaseSpeed + (penguinSpeedLevel - 1) * 1.2;
+}
+
 function updateUI() {
   levelValue.textContent = level.toString();
   goldValue.textContent = gold.toString();
@@ -45,8 +62,13 @@ function updateUI() {
 
   sellBtn.disabled = gold <= 0;
   const upgradeCost = getUpgradeCost();
-  upgradeBtn.textContent = `Upgrade Pickaxe (${upgradeCost} coins)`;
-  upgradeBtn.disabled = coins < upgradeCost;
+  pickaxeCostEl.textContent = upgradeCost.toString();
+  buyPickaxeBtn.disabled = coins < upgradeCost;
+
+  const bootsCost = getBootsCost();
+  bootsCostEl.textContent = bootsCost.toString();
+  buyBootsBtn.disabled = coins < bootsCost;
+
   startBtn.textContent = running ? "Restart" : "Start Mining";
 }
 
@@ -95,11 +117,14 @@ function resetGame() {
   coins = 0;
   fishFound = 0;
   pickaxeLevel = 1;
+  penguinSpeedLevel = 1;
   running = true;
   generateMine();
+  penguin = { x: 90, y: canvas.height - 90 };
+  penguinTarget = null;
+  pendingMineIndex = null;
   setStatus("Level 1: start mining!");
   updateUI();
-  draw();
 }
 
 function sellGold() {
@@ -112,15 +137,27 @@ function sellGold() {
   updateUI();
 }
 
-function upgradePickaxe() {
+function buyPickaxe() {
   const cost = getUpgradeCost();
   if (coins < cost) {
-    setStatus(`You need ${cost} coins to upgrade.`);
+    setStatus(`You need ${cost} coins to buy this upgrade.`);
     return;
   }
   coins -= cost;
   pickaxeLevel += 1;
   setStatus("Pickaxe upgraded! You mine more gold.");
+  updateUI();
+}
+
+function buyBoots() {
+  const cost = getBootsCost();
+  if (coins < cost) {
+    setStatus(`You need ${cost} coins for the speed boots.`);
+    return;
+  }
+  coins -= cost;
+  penguinSpeedLevel += 1;
+  setStatus("Speed boots equipped! Your penguin moves faster.");
   updateUI();
 }
 
@@ -130,7 +167,8 @@ function nextLevel() {
   generateMine();
   setStatus(`Fish found! Welcome to level ${level}.`);
   updateUI();
-  draw();
+  penguinTarget = null;
+  pendingMineIndex = null;
 }
 
 function handleClick(event) {
@@ -159,6 +197,22 @@ function handleClick(event) {
     return;
   }
 
+  const tileWidth = canvas.width / grid.cols;
+  const tileHeight = canvas.height / grid.rows;
+  const targetX = col * tileWidth + tileWidth / 2;
+  const targetY = row * tileHeight + tileHeight / 2;
+
+  penguinTarget = { x: targetX, y: targetY };
+  pendingMineIndex = index;
+  setStatus("Penguin is mining that spot...");
+}
+
+function mineTile(index) {
+  const tile = tiles[index];
+  if (!tile || tile.revealed) {
+    return;
+  }
+
   tile.revealed = true;
 
   if (tile.type === "gold") {
@@ -173,7 +227,32 @@ function handleClick(event) {
   }
 
   updateUI();
-  draw();
+}
+
+function updatePenguin() {
+  if (!penguinTarget) {
+    return;
+  }
+
+  const dx = penguinTarget.x - penguin.x;
+  const dy = penguinTarget.y - penguin.y;
+  const distance = Math.hypot(dx, dy);
+  const speed = getPenguinSpeed();
+
+  if (distance <= speed) {
+    penguin.x = penguinTarget.x;
+    penguin.y = penguinTarget.y;
+    const mineIndex = pendingMineIndex;
+    penguinTarget = null;
+    pendingMineIndex = null;
+    if (mineIndex !== null) {
+      mineTile(mineIndex);
+    }
+    return;
+  }
+
+  penguin.x += (dx / distance) * speed;
+  penguin.y += (dy / distance) * speed;
 }
 
 function drawFish(centerX, centerY, size) {
@@ -200,36 +279,83 @@ function drawFish(centerX, centerY, size) {
 
 function drawPenguin() {
   ctx.save();
-  ctx.translate(90, canvas.height - 90);
-  ctx.fillStyle = "#1d2230";
+  ctx.translate(penguin.x, penguin.y);
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = "#0b0d12";
   ctx.beginPath();
-  ctx.ellipse(0, 0, 40, 52, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 60, 36, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  const bodyGradient = ctx.createRadialGradient(0, -10, 12, 0, 10, 70);
+  bodyGradient.addColorStop(0, "#2a2f3b");
+  bodyGradient.addColorStop(1, "#0f1118");
+  ctx.fillStyle = bodyGradient;
+  ctx.beginPath();
+  ctx.ellipse(0, 4, 42, 56, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = "#f5f6fb";
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
   ctx.beginPath();
-  ctx.ellipse(0, 10, 26, 36, 0, 0, Math.PI * 2);
+  ctx.ellipse(-16, -10, 14, 22, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#1d2230";
+  ctx.beginPath();
+  ctx.ellipse(-44, 6, 18, 28, -0.35, 0, Math.PI * 2);
+  ctx.ellipse(44, 6, 18, 28, 0.35, 0, Math.PI * 2);
+  ctx.fill();
+
+  const bellyGradient = ctx.createRadialGradient(0, 22, 6, 0, 26, 40);
+  bellyGradient.addColorStop(0, "#ffffff");
+  bellyGradient.addColorStop(1, "#dbe2f0");
+  ctx.fillStyle = bellyGradient;
+  ctx.beginPath();
+  ctx.ellipse(0, 20, 28, 38, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#ff9a3d";
+  ctx.beginPath();
+  ctx.ellipse(-16, 52, 14, 6, 0.05, 0, Math.PI * 2);
+  ctx.ellipse(16, 52, 14, 6, -0.05, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#232835";
+  ctx.beginPath();
+  ctx.ellipse(0, -42, 24, 22, 0, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.fillStyle = "#ffb454";
   ctx.beginPath();
-  ctx.moveTo(0, -6);
-  ctx.lineTo(10, 0);
-  ctx.lineTo(0, 6);
+  ctx.moveTo(0, -26);
+  ctx.lineTo(16, -18);
+  ctx.lineTo(0, -10);
   ctx.closePath();
   ctx.fill();
 
   ctx.fillStyle = "#f5f6fb";
   ctx.beginPath();
-  ctx.arc(-12, -16, 4, 0, Math.PI * 2);
-  ctx.arc(12, -16, 4, 0, Math.PI * 2);
+  ctx.arc(-9, -32, 6, 0, Math.PI * 2);
+  ctx.arc(9, -32, 6, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = "#0f1118";
+  ctx.fillStyle = "#1b1f2a";
   ctx.beginPath();
-  ctx.arc(-12, -16, 2, 0, Math.PI * 2);
-  ctx.arc(12, -16, 2, 0, Math.PI * 2);
+  ctx.arc(-9, -32, 3, 0, Math.PI * 2);
+  ctx.arc(9, -32, 3, 0, Math.PI * 2);
   ctx.fill();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(-7.5, -34, 1.4, 0, Math.PI * 2);
+  ctx.arc(10.5, -34, 1.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(0,0,0,0.2)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, -18, 12, 0.1 * Math.PI, 0.9 * Math.PI);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -296,11 +422,18 @@ function draw() {
   ctx.fillText(`Level ${level}`, canvas.width - 120, canvas.height - 28);
 }
 
+function render() {
+  updatePenguin();
+  draw();
+  requestAnimationFrame(render);
+}
+
 canvas.addEventListener("click", handleClick);
 startBtn.addEventListener("click", resetGame);
 sellBtn.addEventListener("click", sellGold);
-upgradeBtn.addEventListener("click", upgradePickaxe);
+buyPickaxeBtn.addEventListener("click", buyPickaxe);
+buyBootsBtn.addEventListener("click", buyBoots);
 
 createIdleGrid();
 updateUI();
-draw();
+render();

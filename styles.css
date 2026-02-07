@@ -140,6 +140,11 @@ button:disabled {
   grid-template-columns: 1fr;
 }
 
+.side-panel {
+  display: grid;
+  gap: 16px;
+}
+
 .card {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 18px;
@@ -156,6 +161,29 @@ button:disabled {
   margin: 0;
   padding-left: 18px;
   color: #cdd3ea;
+}
+
+.shop-card {
+  display: grid;
+  gap: 12px;
+}
+
+.shop-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.shop-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.shop-subtext {
+  margin: 4px 0 0;
+  color: #c3c9df;
+  font-size: 0.9rem;
 }
 
 .canvas-wrap {

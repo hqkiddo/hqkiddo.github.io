@@ -78,9 +78,9 @@ const chancePrizes = [
   { label: "+50 Gems", type: "gems", value: 50 },
   { label: "+100 Gems", type: "gems", value: 100 },
   { label: "+30s Time", type: "time", value: 30 },
-  { label: "Instant Win", type: "win", value: 1 },
-  { label: "Lose 20 Gems", type: "lose_gems", value: 20 },
-  { label: "Lose 10s", type: "lose_time", value: 10 },
+  { label: "Lose 50 gems", type: "gems", value: -50 },
+  { label: "Lose 20 Gems", type: "lose_gems", value: -20 },
+  { label: "Lose 10s", type: "lose_time", value: -10 },
   { label: "No Prize", type: "nothing", value: 0 },
   { label: "Lose Spin", type: "lose_spin", value: 1 },
 ];

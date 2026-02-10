@@ -58,33 +58,35 @@
           <button class="nav-tab active" data-tab="closet">Closet</button>
           <button class="nav-tab" data-tab="outfit">Outfit</button>
         </nav>
+        <button class="btn-add-corner" id="btn-add-item" title="Add clothing">
+          <span class="add-icon">+</span> Add
+        </button>
       </header>
 
       <!-- CLOSET TAB -->
       <div id="tab-closet" class="tab-content active">
-        <div class="closet-toolbar">
-          <div class="filters">
-            <select id="filter-status" aria-label="Filter by status">
-              <option value="all">All items</option>
-              <option value="clean">Clean only</option>
-              <option value="laundry">In laundry</option>
-            </select>
-            <select id="filter-favorites" aria-label="Filter favorites">
-              <option value="all">All</option>
-              <option value="favorites">Favorites only</option>
-            </select>
-          </div>
-          <div class="batch-actions">
-            <button class="btn-small" id="btn-select-mode">Select for batch</button>
-            <button class="btn-small" id="btn-batch-clean" disabled>Mark Clean</button>
-            <button class="btn-small" id="btn-batch-laundry" disabled>Mark Laundry</button>
-            <button class="btn-small" id="btn-cancel-select" style="display:none;">Cancel</button>
-          </div>
+        <div id="closet-layout" class="closet-layout">
+          <aside id="sidebar" class="sidebar" aria-label="Filter and actions">
+            <div class="sidebar-filters">
+              <button class="sidebar-btn active" data-filter="all">All</button>
+              <button class="sidebar-btn" data-filter="favorites">Favorites</button>
+              <button class="sidebar-btn" data-filter="clean">Clean</button>
+              <button class="sidebar-btn" data-filter="laundry">In laundry</button>
+            </div>
+            <div class="sidebar-batch" id="sidebar-batch" style="display:none;">
+              <button class="btn-small" id="btn-batch-clean" disabled>Mark Clean</button>
+              <button class="btn-small" id="btn-batch-laundry" disabled>Mark Laundry</button>
+              <button class="btn-small" id="btn-cancel-select">Cancel</button>
+            </div>
+            <div class="sidebar-batch" id="sidebar-select-prompt">
+              <button class="btn-small" id="btn-select-mode">Select for batch</button>
+            </div>
+            <button class="sidebar-position-btn" id="btn-sidebar-position" title="Move sidebar">⇄</button>
+          </aside>
+          <main class="closet-main">
+            <div id="closet-grid" class="closet-grid"></div>
+          </main>
         </div>
-        <button class="btn-add" id="btn-add-item">
-          <span>+</span> Add Clothing Item
-        </button>
-        <div id="closet-grid" class="closet-grid"></div>
       </div>
 
       <!-- OUTFIT TAB -->

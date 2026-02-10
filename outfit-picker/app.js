@@ -12,7 +12,8 @@ const DEFAULT_DATA = {
   clothes: [],
   settings: {
     laundryReminder: true,
-    laundryDays: 3
+    laundryDays: 3,
+    sidebarRight: false
   }
 };
 
@@ -72,7 +73,10 @@ function init() {
 function loadState() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) state = { ...DEFAULT_DATA, ...JSON.parse(stored) };
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      state = { ...DEFAULT_DATA, ...parsed, settings: { ...DEFAULT_DATA.settings, ...parsed?.settings } };
+    }
   } catch (_) {}
 }
 
@@ -155,27 +159,40 @@ function setupNavTabs() {
 // ─── Closet ────────────────────────────────────────────────────────────
 let selectedIds = new Set();
 let isSelectMode = false;
+let currentFilter = 'all';
 
 function setupCloset() {
-  document.getElementById('filter-status')?.addEventListener('change', renderCloset);
-  document.getElementById('filter-favorites')?.addEventListener('change', renderCloset);
+  document.querySelectorAll('.sidebar-btn[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar-btn[data-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderCloset();
+    });
+  });
   document.getElementById('btn-batch-clean')?.addEventListener('click', () => batchUpdate('clean'));
   document.getElementById('btn-batch-laundry')?.addEventListener('click', () => batchUpdate('laundry'));
   document.getElementById('btn-select-mode')?.addEventListener('click', () => {
     isSelectMode = true;
     selectedIds = new Set();
-    document.getElementById('btn-select-mode').style.display = 'none';
-    document.getElementById('btn-cancel-select').style.display = 'inline-block';
+    document.getElementById('sidebar-select-prompt').style.display = 'none';
+    document.getElementById('sidebar-batch').style.display = 'flex';
     renderCloset();
   });
   document.getElementById('btn-cancel-select')?.addEventListener('click', () => {
     isSelectMode = false;
     selectedIds.clear();
-    document.getElementById('btn-select-mode').style.display = 'inline-block';
-    document.getElementById('btn-cancel-select').style.display = 'none';
+    document.getElementById('sidebar-batch').style.display = 'none';
+    document.getElementById('sidebar-select-prompt').style.display = 'flex';
     updateBatchButtons();
     renderCloset();
   });
+  document.getElementById('btn-sidebar-position')?.addEventListener('click', () => {
+    state.settings.sidebarRight = !state.settings.sidebarRight;
+    saveState();
+    document.getElementById('closet-layout').classList.toggle('sidebar-right', state.settings.sidebarRight);
+  });
+  document.getElementById('closet-layout')?.classList.toggle('sidebar-right', state.settings.sidebarRight);
 }
 
 function batchUpdate(status) {
@@ -188,8 +205,8 @@ function batchUpdate(status) {
   });
   selectedIds.clear();
   isSelectMode = false;
-  document.getElementById('btn-select-mode').style.display = 'inline-block';
-  document.getElementById('btn-cancel-select').style.display = 'none';
+  document.getElementById('sidebar-batch').style.display = 'none';
+  document.getElementById('sidebar-select-prompt').style.display = 'flex';
   saveState();
   renderCloset();
   updateBatchButtons();
@@ -205,13 +222,10 @@ function renderCloset() {
   const grid = document.getElementById('closet-grid');
   if (!grid) return;
 
-  const statusFilter = document.getElementById('filter-status')?.value || 'all';
-  const favFilter = document.getElementById('filter-favorites')?.value || 'all';
-
   let items = state.clothes;
-  if (statusFilter === 'clean') items = items.filter(c => c.status === 'clean');
-  else if (statusFilter === 'laundry') items = items.filter(c => c.status === 'laundry');
-  if (favFilter === 'favorites') items = items.filter(c => c.favorite);
+  if (currentFilter === 'clean') items = items.filter(c => c.status === 'clean');
+  else if (currentFilter === 'laundry') items = items.filter(c => c.status === 'laundry');
+  else if (currentFilter === 'favorites') items = items.filter(c => c.favorite);
 
   grid.innerHTML = items.length
     ? items.map(item => renderClosetItem(item)).join('')

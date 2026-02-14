@@ -46,6 +46,13 @@ So you have plenty of room for extra sensors or LEDs.
 | **Ambient light** | LDR (photoresistor) on an analog pin | Simple “lights on/off” or “aim toward light.” |
 | **Small display** | I2C OLED (e.g. SSD1306) on A4/A5 | Show temp, mode, or status. |
 | **Sound** | Piezo buzzer on a digital pin | Beeps, alerts, or simple tunes. |
+| **LED** | LED + resistor (e.g. 220Ω) on digital pin | Flash when firing – great for contest demos! |
+
+### Quick wiring for contest demos
+
+**Piezo buzzer** (pin 7, GND): `pinMode(7, OUTPUT); digitalWrite(7, HIGH); delay(50); digitalWrite(7, LOW);` in `fire()` for a satisfying *pew*.
+
+**LED** (pin 6, 220Ω resistor, GND): Flash in `fire()` and `burstFire()` for visible "laser" effect.
 
 ---
 

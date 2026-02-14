@@ -87,7 +87,25 @@ Baud rate is 9600. Press the remote buttons and watch the hex codes; you can add
 - **`platformio.ini`** – board (Nano ATmega328), libraries (Servo, IRremote).
 - **`src/main.cpp`** – turret logic: IR handling, servos (yaw/pitch/roll), fire, home, etc.
 
-Remote mapping (NEC codes in code): arrow keys = aim, OK = fire one, * = fire all, 0 = shake no, 5 = dance, 7 = shoot around randomly, 9 = shake yes, **#** = print chip temperature (see Serial monitor). See **`CAPABILITIES.md`** for onboard features (internal temp, “find remote” idea) and add-on sensor ideas.
+Remote mapping (NEC codes in code):
+
+| Button | Action |
+|--------|--------|
+| Arrows | Aim (up/down/left/right) |
+| OK | Fire one |
+| * | Fire all |
+| 0 | Shake head no |
+| 1 | **Find Remote** – slowly scans; fires when IR detected |
+| 2 | **Guard mode** – patrols; alerts (fire + dance) on IR |
+| 3 | **Speed toggle** – faster/slower movement |
+| 4 | **Burst fire** – 3 rapid shots |
+| 5 | Turret dance |
+| 6 | **Disco dance** – strobe-style routine |
+| 7 | Shoot around randomly |
+| 9 | Shake head yes |
+| # | Chip temp (Serial); if hot or **double-press** → overheat drama |
+
+If buttons 1–6 don't work, press them and check Serial for hex codes, then update `CMD_1`–`CMD_6` in `src/main.cpp`. See **`CAPABILITIES.md`** for add-on sensor ideas.
 
 ## Reference
 

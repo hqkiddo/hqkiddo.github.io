@@ -5,6 +5,7 @@
  * ADD-ONS (optional – wire to use):
  *   LED: pin 6 → 220Ω resistor → LED → GND (flashes when firing)
  *   Buzzer: pin 7 → buzzer → GND (pew sound when firing)
+ *   LED on D3: blinks when you press 0 on the remote
  *
  * CONTEST UPGRADES:
  * - Find Remote mode (1): slowly scans, fires when it detects IR
@@ -26,6 +27,7 @@
 
 #define PIN_LED    6
 #define PIN_BUZZER 7
+#define PIN_LED_D3 3   // Blinks when you press 0
 
 // Remote button codes (NEC). Add more from Serial output if you use another remote.
 #define CMD_LEFT   0x8
@@ -102,10 +104,12 @@ void setup() {
 
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_BUZZER, OUTPUT);
+  pinMode(PIN_LED_D3, OUTPUT);
   digitalWrite(PIN_LED, LOW);
   digitalWrite(PIN_BUZZER, LOW);
+  digitalWrite(PIN_LED_D3, LOW);
 
-  Serial.println(F("CrunchLabs Turret ready. IR at pin 9. LED=6, Buzzer=7."));
+  Serial.println(F("CrunchLabs Turret ready. IR at pin 9. LED=6, Buzzer=7, LED_D3=3."));
   homeServos();
 }
 
@@ -142,7 +146,17 @@ void loop() {
     case CMD_RIGHT: rightMove(1); break;
     case CMD_OK:    fire(); break;
     case CMD_STAR:  fireAll(); delay(50); break;
-    case CMD_0:     shakeHeadNo(3); delay(50); break;
+    case CMD_0:     {
+      for (int i = 0; i < 5; i++) {
+        digitalWrite(PIN_LED_D3, HIGH);
+        delay(80);
+        digitalWrite(PIN_LED_D3, LOW);
+        delay(80);
+      }
+      shakeHeadNo(3);
+      delay(50);
+      break;
+    }
     case CMD_1:     currentMode = MODE_FIND_REMOTE; findRemoteAngle = 90; Serial.println(F("FIND REMOTE – scanning...")); break;
     case CMD_2:     currentMode = MODE_GUARD; guardAngle = 90; guardDirection = 1; Serial.println(F("GUARD – patrolling...")); break;
     case CMD_3:     fastMode = !fastMode; Serial.print(F("Speed: ")); Serial.println(fastMode ? F("FAST") : F("normal")); break;

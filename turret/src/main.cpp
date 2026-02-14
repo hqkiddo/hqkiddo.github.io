@@ -2,6 +2,10 @@
  * CrunchLabs IR Turret – control with IR remote
  * Board: Arduino Nano (ATmega328). Pins: YAW=10, PITCH=11, ROLL=12, IR=9.
  *
+ * ADD-ONS (optional – wire to use):
+ *   LED: pin 6 → 220Ω resistor → LED → GND (flashes when firing)
+ *   Buzzer: pin 7 → buzzer → GND (pew sound when firing)
+ *
  * CONTEST UPGRADES:
  * - Find Remote mode (1): slowly scans, fires when it detects IR
  * - Guard mode (2): patrols and alerts when IR detected
@@ -19,6 +23,9 @@
 #include <avr/io.h>
 
 #define DECODE_NEC
+
+#define PIN_LED    6
+#define PIN_BUZZER 7
 
 // Remote button codes (NEC). Add more from Serial output if you use another remote.
 #define CMD_LEFT   0x8
@@ -82,6 +89,7 @@ int readChipTempC();  // ATmega328P internal temp (chip, not room)
 void reportChipTemp();
 void findRemoteStep();
 void guardStep();
+void fireFX();  // LED flash + pew sound (when wired)
 
 void setup() {
   Serial.begin(9600);
@@ -92,7 +100,12 @@ void setup() {
 
   IrReceiver.begin(9, ENABLE_LED_FEEDBACK);
 
-  Serial.println(F("CrunchLabs Turret ready. IR at pin 9."));
+  pinMode(PIN_LED, OUTPUT);
+  pinMode(PIN_BUZZER, OUTPUT);
+  digitalWrite(PIN_LED, LOW);
+  digitalWrite(PIN_BUZZER, LOW);
+
+  Serial.println(F("CrunchLabs Turret ready. IR at pin 9. LED=6, Buzzer=7."));
   homeServos();
 }
 
@@ -201,7 +214,16 @@ void downMove(int moves) {
   }
 }
 
+void fireFX() {
+  digitalWrite(PIN_LED, HIGH);
+  tone(PIN_BUZZER, 1800, 35);
+  delay(35);
+  digitalWrite(PIN_LED, LOW);
+  noTone(PIN_BUZZER);
+}
+
 void fire() {
+  fireFX();
   rollServo.write(rollStopSpeed + rollMoveSpeed);
   delay(rollPrecision);
   rollServo.write(rollStopSpeed);
@@ -210,6 +232,7 @@ void fire() {
 }
 
 void fireAll() {
+  fireFX();
   rollServo.write(rollStopSpeed + rollMoveSpeed);
   delay(rollPrecision * 6);
   rollServo.write(rollStopSpeed);
@@ -240,6 +263,7 @@ void shakeHeadNo(int moves) {
 }
 
 void shootAroundRandomly() {
+  fireFX();
   rollServo.write(rollStopSpeed + rollMoveSpeed);
   leftMove(6);
   rollServo.write(rollStopSpeed);
@@ -272,6 +296,7 @@ void turretDance() {
     yawServo.write(yawStopSpeed);                delay(stepMs);
   }
   // Quick barrel spin as finisher
+  fireFX();
   rollServo.write(rollStopSpeed + rollMoveSpeed);
   delay(rollPrecision);
   rollServo.write(rollStopSpeed);
@@ -362,6 +387,7 @@ void guardStep() {
 void burstFire() {
   Serial.println(F("BURST FIRE"));
   for (int i = 0; i < 3; i++) {
+    fireFX();
     rollServo.write(rollStopSpeed + rollMoveSpeed);
     delay(rollPrecision / 2);
     rollServo.write(rollStopSpeed);
@@ -384,6 +410,7 @@ void discoDance() {
     // Nod + fire
     pitchServo.write(startPitch + 25); pitchServoVal = startPitch + 25; delay(stepMs);
     pitchServo.write(startPitch - 15); pitchServoVal = startPitch - 15; delay(stepMs);
+    fireFX();
     rollServo.write(rollStopSpeed + rollMoveSpeed);
     delay(rollPrecision);
     rollServo.write(rollStopSpeed);

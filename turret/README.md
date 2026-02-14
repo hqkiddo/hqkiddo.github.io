@@ -6,6 +6,16 @@ This project lets you build and upload code to the **CrunchLabs IR Turret** (Ard
 
 - **Board:** Arduino Nano clone (ATmega328). Often uses a **CH340** USB chip.
 - **Pins:** YAW servo = 10, PITCH servo = 11, ROLL servo = 12, IR receiver = 9.
+- **Optional add-ons:** LED on pin 6 (with 220Ω resistor to GND), piezo buzzer on pin 7 (to GND). Flash + pew when firing!
+
+### LED + Buzzer wiring
+
+| Part | Wiring |
+|------|--------|
+| **LED** | Pin 6 → 220Ω resistor → LED long leg (+) → LED short leg (−) → GND |
+| **Buzzer** | Pin 7 → buzzer + (red) → buzzer − (black) → GND |
+
+Works without them too – the code just won't flash or beep.
 
 ## 1. Install tooling (run these in your own terminal)
 

@@ -39,23 +39,8 @@
       </header>
 
       <section class="theme-controls">
-        <div>
-          <p class="label" data-i18n="bgColor">Background Color</p>
-          <div class="theme-row">
-            <input
-              id="bgColorPicker"
-              class="color-input"
-              type="color"
-              value="#0f1118"
-              aria-label="Pick background color"
-            />
-            <button class="ghost" data-bg="#0f1118" data-i18n="night">Night</button>
-            <button class="ghost" data-bg="#102a43" data-i18n="ocean">Ocean</button>
-            <button class="ghost" data-bg="#2a1f3d" data-i18n="purple">Purple</button>
-            <button class="ghost" data-bg="#1b3a2b" data-i18n="forest">Forest</button>
-            <button class="ghost" data-bg="#3b2a1b" data-i18n="desert">Desert</button>
-          </div>
-        </div>
+        <input type="color" id="bgColorPicker" value="#0f1118" aria-label="Pick background color" hidden />
+        <button type="button" id="changeBgBtn" class="ghost" data-i18n="changeBg">Change Background color</button>
       </section>
 
       <section class="menu-grid">
@@ -81,6 +66,7 @@
       </footer>
     </div>
 
+    <script src="bg-utils.js"></script>
     <script src="i18n.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -90,54 +76,24 @@
     <script src="db.js"></script>
     <script>
       const colorPicker = document.getElementById("bgColorPicker");
-      const presetButtons = Array.from(document.querySelectorAll("[data-bg]"));
+      const changeBgBtn = document.getElementById("changeBgBtn");
       const storageKey = "hqkiddo-menu-bg";
-
-      function getTextColor(color) {
-        const hex = color.replace("#", "");
-        if (hex.length !== 6) {
-          return "#f5f6fb";
-        }
-        const r = parseInt(hex.slice(0, 2), 16) / 255;
-        const g = parseInt(hex.slice(2, 4), 16) / 255;
-        const b = parseInt(hex.slice(4, 6), 16) / 255;
-        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        return luminance > 0.55 ? "#0f1118" : "#f5f6fb";
-      }
-
-      function applyBackground(color) {
-        const textColor = getTextColor(color);
-        document.documentElement.style.backgroundColor = color;
-        document.body.style.backgroundColor = color;
-        document.body.style.color = textColor;
-        document.documentElement.style.color = textColor;
-      }
 
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         colorPicker.value = saved;
-        applyBackground(saved);
+        if (window.HQBg) HQBg.applyBackground(saved);
       }
+
+      changeBgBtn.addEventListener("click", () => colorPicker.click());
 
       colorPicker.addEventListener("input", (event) => {
         const color = event.target.value;
-        applyBackground(color);
+        if (window.HQBg) HQBg.applyBackground(color);
         localStorage.setItem(storageKey, color);
         if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
           HQDb.saveSettings({ bgColor: color }).catch(() => {});
         }
-      });
-
-      presetButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const color = button.dataset.bg;
-          colorPicker.value = color;
-          applyBackground(color);
-          localStorage.setItem(storageKey, color);
-          if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
-            HQDb.saveSettings({ bgColor: color }).catch(() => {});
-          }
-        });
       });
 
       if (window.HQAuth) {
@@ -146,7 +102,7 @@
             HQDb.getSettings().then((s) => {
               if (s && s.bgColor) {
                 colorPicker.value = s.bgColor;
-                applyBackground(s.bgColor);
+                if (window.HQBg) HQBg.applyBackground(s.bgColor);
                 localStorage.setItem(storageKey, s.bgColor);
               }
             });

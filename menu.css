@@ -121,26 +121,14 @@ input {
 
 .theme-controls {
   margin-top: 20px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.theme-row {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
 }
 
-.color-input {
-  width: 46px;
-  height: 38px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  padding: 0;
-  background: transparent;
+.theme-controls #changeBgBtn {
+  padding: 10px 18px;
 }
 
 button.ghost {

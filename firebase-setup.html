@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Firebase Setup | HQ Kiddo</title>
+    <link rel="stylesheet" href="menu.css" />
+    <link rel="stylesheet" href="login.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar topbar-with-nav">
+        <div>
+          <a class="back-link" href="login.html">← Back to login</a>
+          <h1>Firebase Setup</h1>
+          <p class="subtitle">Follow these steps to enable login and cloud sync.</p>
+        </div>
+      </header>
+
+      <section class="card" style="max-width: 640px;">
+        <ol style="margin: 0; padding-left: 20px; line-height: 1.8;">
+          <li><strong>Create a Firebase project</strong><br>
+            Go to <a href="https://console.firebase.google.com/" target="_blank" rel="noopener" class="nav-link">Firebase Console</a> → Add project (or use existing).</li>
+          <li><strong>Enable Authentication</strong><br>
+            Build → Authentication → Get started → Sign-in method → Enable <strong>Email/Password</strong>.</li>
+          <li><strong>Create Firestore</strong><br>
+            Build → Firestore Database → Create database → Start in test mode (or Production with rules) → Pick a location.</li>
+          <li><strong>Add Firestore rules</strong><br>
+            Firestore → Rules → paste:
+            <pre style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem;">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}</pre>
+          </li>
+          <li><strong>Add a Web app</strong><br>
+            Project settings (gear) → Your apps → Web icon (<code>&lt;/&gt;</code>) → Register app → Copy the <code>firebaseConfig</code> object.</li>
+          <li><strong>Update firebase-config.js</strong><br>
+            In your repo, open <code>firebase-config.js</code>. Replace the placeholder values with your config and set <code>FIREBASE_ENABLED = true</code>.</li>
+        </ol>
+        <p style="margin-top: 20px;">
+          <a href="login.html" class="nav-link">← Back to login</a>
+        </p>
+      </section>
+
+      <footer class="footer">
+        <p>© 2026 Hayley H</p>
+      </footer>
+    </div>
+    <script src="bg-utils.js"></script>
+  </body>
+</html>

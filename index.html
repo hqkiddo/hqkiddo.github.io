@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>HQ Kiddo Game Menu</title>
+    <title>HQ Kiddo Menu</title>
     <meta
       name="description"
-      content="Choose a game: Magnifying Quest or Penguin Miner."
+      content="Choose an app: Magnifying Quest, Penguin Miner, or Handwritten Notes."
     />
     <link rel="stylesheet" href="menu.css" />
     <link rel="icon" href="data:," />
@@ -16,10 +16,23 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">HQ Kiddo</p>
-          <h1>Game Menu</h1>
-          <p class="subtitle">Pick a game to play.</p>
+          <h1>Menu</h1>
+          <p class="subtitle">Pick an app to use.</p>
         </div>
       </header>
+
+      <section id="authSection" class="auth-section" style="display: none;">
+        <p class="label">Account</p>
+        <div id="authLoggedOut" class="auth-row">
+          <button id="authLoginBtn" class="ghost">Log in</button>
+          <button id="authSignupBtn" class="primary">Sign up</button>
+        </div>
+        <div id="authLoggedIn" class="auth-row" style="display: none;">
+          <span id="authUserEmail" class="auth-email"></span>
+          <button id="authLogoutBtn" class="ghost">Log out</button>
+        </div>
+        <p class="auth-hint">Log in to save your progress across devices.</p>
+      </section>
 
       <section class="theme-controls">
         <div>
@@ -64,6 +77,32 @@
       </footer>
     </div>
 
+    <div id="authModal" class="modal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="authTitle">Log in</h3>
+          <button id="closeAuthBtn" class="ghost">Close</button>
+        </div>
+        <form id="authForm">
+          <label for="authEmail" class="auth-label">Email</label>
+          <input id="authEmail" type="email" placeholder="you@example.com" required autocomplete="email" />
+          <label for="authPassword" class="auth-label">Password</label>
+          <input id="authPassword" type="password" placeholder="At least 6 characters" required minlength="6" autocomplete="current-password" />
+          <p id="authError" class="auth-error"></p>
+          <button type="submit" id="authSubmitBtn" class="primary">Log in</button>
+        </form>
+        <p class="auth-toggle">
+          <button type="button" id="authToggle" class="auth-toggle-btn">Don't have an account? <strong>Sign up</strong></button>
+        </p>
+      </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="db.js"></script>
     <script>
       const colorPicker = document.getElementById("bgColorPicker");
       const presetButtons = Array.from(document.querySelectorAll("[data-bg]"));
@@ -99,6 +138,9 @@
         const color = event.target.value;
         applyBackground(color);
         localStorage.setItem(storageKey, color);
+        if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
+          HQDb.saveSettings({ bgColor: color }).catch(() => {});
+        }
       });
 
       presetButtons.forEach((button) => {
@@ -107,8 +149,26 @@
           colorPicker.value = color;
           applyBackground(color);
           localStorage.setItem(storageKey, color);
+          if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
+            HQDb.saveSettings({ bgColor: color }).catch(() => {});
+          }
         });
       });
+
+      if (window.HQAuth) {
+        HQAuth.onAuthChange = (user) => {
+          if (user && window.HQDb) {
+            HQDb.getSettings().then((s) => {
+              if (s && s.bgColor) {
+                colorPicker.value = s.bgColor;
+                applyBackground(s.bgColor);
+                localStorage.setItem(storageKey, s.bgColor);
+              }
+            });
+          }
+        };
+        if (HQAuth.user) HQAuth.onAuthChange(HQAuth.user);
+      }
     </script>
   </body>
 </html>

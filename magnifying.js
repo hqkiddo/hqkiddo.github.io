@@ -229,6 +229,75 @@ const unlockedShapes = new Set(["circle"]);
 let wheelSelectedIndex = null;
 let chanceSelectedIndex = null;
 
+const MQ_STORAGE_KEY = "hqkiddo-magnifying";
+
+function getMagnifyingState() {
+  return {
+    gems,
+    magnifierLevel,
+    unlockedScenes: Array.from(unlockedScenes),
+    unlockedShapes: Array.from(unlockedShapes),
+    magnifierShape,
+  };
+}
+
+function applyMagnifyingState(data) {
+  if (!data) return;
+  if (typeof data.gems === "number") gems = data.gems;
+  if (typeof data.magnifierLevel === "number") magnifierLevel = data.magnifierLevel;
+  if (Array.isArray(data.unlockedScenes)) {
+    unlockedScenes.clear();
+    data.unlockedScenes.forEach((id) => unlockedScenes.add(id));
+  }
+  if (Array.isArray(data.unlockedShapes)) {
+    unlockedShapes.clear();
+    data.unlockedShapes.forEach((s) => unlockedShapes.add(s));
+  }
+  if (data.magnifierShape && unlockedShapes.has(data.magnifierShape)) {
+    magnifierShape = data.magnifierShape;
+    if (shapeSelect) shapeSelect.value = data.magnifierShape;
+  }
+}
+
+async function saveMagnifyingState() {
+  const state = getMagnifyingState();
+  try {
+    localStorage.setItem(MQ_STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn("Could not save Magnifying Quest:", e);
+  }
+  if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
+    try {
+      await HQDb.saveMagnifying(state);
+    } catch (e) {
+      console.warn("Cloud save failed:", e);
+    }
+  }
+}
+
+async function loadMagnifyingState() {
+  if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
+    try {
+      const cloud = await HQDb.getMagnifying();
+      if (cloud) {
+        applyMagnifyingState(cloud);
+        updateUI();
+        return;
+      }
+    } catch (e) {
+      console.warn("Cloud load failed:", e);
+    }
+  }
+  try {
+    const raw = localStorage.getItem(MQ_STORAGE_KEY);
+    const data = raw ? JSON.parse(raw) : null;
+    applyMagnifyingState(data);
+  } catch (e) {
+    // use defaults
+  }
+  updateUI();
+}
+
 function playBuzzer() {
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const oscillator = audioCtx.createOscillator();
@@ -459,6 +528,7 @@ function endGame() {
 function addGems(amount) {
   gems += amount;
   updateUI();
+  saveMagnifyingState();
 }
 
 function selectAtPosition(x, y) {
@@ -558,6 +628,7 @@ function handleHint() {
   hintUntil = Date.now() + 2500;
   setStatus("Hint activated!");
   updateUI();
+  saveMagnifyingState();
 }
 
 function unlockScene() {
@@ -575,6 +646,7 @@ function unlockScene() {
   preloadScene(selectedScene);
   setStatus(`${selectedScene.name} unlocked!`);
   updateUI();
+  saveMagnifyingState();
 }
 
 function toggleFullscreen() {
@@ -643,6 +715,7 @@ function unlockShape() {
   magnifierShape = selectedShape;
   setStatus(`${selectedShape} magnifier unlocked.`);
   updateUI();
+  saveMagnifyingState();
 }
 
 function changeShape() {
@@ -890,6 +963,7 @@ function applyChancePrize(prize) {
   } else if (prize.type === "lose_gems") {
     gems = Math.max(0, gems - prize.value);
     updateUI();
+    saveMagnifyingState();
     chanceResult.textContent = `Ouch! You lost ${prize.value} gems.`;
   } else if (prize.type === "lose_time") {
     if (running) {
@@ -918,6 +992,7 @@ function spinChanceWheel() {
   isChanceSpinning = true;
   chanceResult.textContent = "Spinning...";
   updateUI();
+  saveMagnifyingState();
 
   const slice = (Math.PI * 2) / chancePrizes.length;
   const landingIndex = Math.floor(Math.random() * chancePrizes.length);
@@ -966,6 +1041,7 @@ function spinWheel() {
   isSpinning = true;
   wheelResult.textContent = "Spinning...";
   updateUI();
+  saveMagnifyingState();
 
   const slice = (Math.PI * 2) / wheelPrizes.length;
   const landingIndex = Math.floor(Math.random() * wheelPrizes.length);
@@ -1014,6 +1090,7 @@ function upgradeMagnifier() {
   magnifierLevel += 1;
   setStatus("Magnifier upgraded.");
   updateUI();
+  saveMagnifyingState();
 }
 
 function preloadScene(scene) {
@@ -1226,7 +1303,15 @@ shapeSelect.addEventListener("change", () => {
   updateUI();
 });
 
-updateUI();
 preloadScene(currentScene);
 preloadItemImages();
 render();
+
+function initMagnifying() {
+  if (window.FIREBASE_ENABLED && typeof firebase !== "undefined") {
+    firebase.auth().onAuthStateChanged(loadMagnifyingState);
+  } else {
+    loadMagnifyingState();
+  }
+}
+initMagnifying();

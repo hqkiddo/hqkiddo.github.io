@@ -22,7 +22,22 @@
   const emptyState = document.getElementById("emptyState");
   const noteCount = document.getElementById("noteCount");
 
-  function loadNotes() {
+  async function loadNotes() {
+    if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
+      try {
+        const cloud = await HQDb.getNotes();
+        notes = cloud || [];
+      } catch (e) {
+        console.warn("Cloud load failed, using local:", e);
+        loadFromLocal();
+      }
+    } else {
+      loadFromLocal();
+    }
+    renderNotes();
+  }
+
+  function loadFromLocal() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       notes = raw ? JSON.parse(raw) : [];
@@ -31,11 +46,18 @@
     }
   }
 
-  function saveNotes() {
+  async function saveNotes() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
     } catch (e) {
       console.warn("Could not save notes:", e);
+    }
+    if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
+      try {
+        await HQDb.saveNotes(notes);
+      } catch (e) {
+        console.warn("Cloud save failed:", e);
+      }
     }
     renderNotes();
   }
@@ -231,6 +253,12 @@
   fileInput.addEventListener("change", handleFileSelect);
   searchInput.addEventListener("input", renderNotes);
 
-  loadNotes();
-  renderNotes();
+  function init() {
+    if (window.FIREBASE_ENABLED && typeof firebase !== "undefined") {
+      firebase.auth().onAuthStateChanged(loadNotes);
+    } else {
+      loadNotes();
+    }
+  }
+  init();
 })();

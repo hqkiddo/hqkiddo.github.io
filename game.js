@@ -247,6 +247,83 @@ let equippedSkin = "skin-classic";
 let equippedClothes = { scarf: null, hat: null, face: null };
 
 const penguinSpeed = 3.5;
+const PENGUIN_STORAGE_KEY = "hqkiddo-penguin";
+
+function getPenguinState() {
+  return {
+    level,
+    materials: { ...materials },
+    fishFound,
+    pickaxeLevel,
+    ownedItems: Array.from(ownedItems),
+    equippedSkin,
+    equippedClothes: { ...equippedClothes },
+    tiles: tiles.map((t) => ({ type: t.type, revealed: t.revealed })),
+    running,
+  };
+}
+
+function applyPenguinState(data) {
+  if (!data) return;
+  if (typeof data.level === "number") level = data.level;
+  if (data.materials) materials = { ...data.materials };
+  if (typeof data.fishFound === "number") fishFound = data.fishFound;
+  if (typeof data.pickaxeLevel === "number") pickaxeLevel = data.pickaxeLevel;
+  if (Array.isArray(data.ownedItems)) {
+    ownedItems.clear();
+    data.ownedItems.forEach((id) => ownedItems.add(id));
+  }
+  if (data.equippedSkin) equippedSkin = data.equippedSkin;
+  if (data.equippedClothes) equippedClothes = { ...data.equippedClothes };
+  if (Array.isArray(data.tiles) && data.tiles.length === grid.cols * grid.rows) {
+    tiles = data.tiles.map((t) => ({ type: t.type || "rock", revealed: !!t.revealed }));
+  } else if (level > 1 || materials.iron > 0 || materials.silver > 0 || materials.gold > 0 || materials.crystal > 0) {
+    generateMine();
+  }
+  if (typeof data.running === "boolean") running = data.running;
+  if (level >= 1 && level <= levelThemes.length) {
+    currentTheme = levelThemes[(level - 1) % levelThemes.length];
+  }
+}
+
+async function savePenguinState() {
+  const state = getPenguinState();
+  try {
+    localStorage.setItem(PENGUIN_STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn("Could not save Penguin Miner:", e);
+  }
+  if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
+    try {
+      await HQDb.savePenguin(state);
+    } catch (e) {
+      console.warn("Cloud save failed:", e);
+    }
+  }
+}
+
+async function loadPenguinState() {
+  if (window.HQDb && window.HQAuth && HQAuth.isLoggedIn()) {
+    try {
+      const cloud = await HQDb.getPenguin();
+      if (cloud) {
+        applyPenguinState(cloud);
+        updateUI();
+        return;
+      }
+    } catch (e) {
+      console.warn("Cloud load failed:", e);
+    }
+  }
+  try {
+    const raw = localStorage.getItem(PENGUIN_STORAGE_KEY);
+    const data = raw ? JSON.parse(raw) : null;
+    applyPenguinState(data);
+  } catch (e) {
+    // use defaults
+  }
+  updateUI();
+}
 
 function setStatus(message) {
   statusMessage.textContent = message;
@@ -328,6 +405,7 @@ function resetGame() {
   pendingMineIndex = null;
   setStatus(`Level 1: ${currentTheme.name}`);
   updateUI();
+  savePenguinState();
 }
 
 function buyPickaxe(tier) {
@@ -351,6 +429,7 @@ function buyPickaxe(tier) {
   pickaxeLevel = tier;
   setStatus(`${pickaxeTiers[tier].name} equipped!`);
   updateUI();
+  savePenguinState();
 }
 
 function formatCost(cost) {
@@ -387,6 +466,7 @@ function buyShopItem(item) {
       setStatus(`${item.name} equipped!`);
     }
     renderShop();
+    savePenguinState();
     return;
   }
 
@@ -409,6 +489,7 @@ function buyShopItem(item) {
   setStatus(`${item.name} purchased!`);
   updateUI();
   renderShop();
+  savePenguinState();
 }
 
 function renderShopSection(title, items) {
@@ -501,6 +582,7 @@ function nextLevel() {
   updateUI();
   penguinTarget = null;
   pendingMineIndex = null;
+  savePenguinState();
 }
 
 function handleClick(event) {
@@ -571,6 +653,7 @@ function mineTile(index) {
   }
 
   updateUI();
+  savePenguinState();
 }
 
 function updatePenguin() {
@@ -933,7 +1016,19 @@ if (canvas && ctx && startBtn && statusMessage) {
     });
   }
 
-  createIdleGrid();
-  updateUI();
-  render();
+  async function initPenguin() {
+    if (window.FIREBASE_ENABLED && typeof firebase !== "undefined") {
+      await new Promise((resolve) => {
+        firebase.auth().onAuthStateChanged(async () => {
+          await loadPenguinState();
+          resolve();
+        });
+      });
+    } else {
+      await loadPenguinState();
+    }
+    if (tiles.length === 0) createIdleGrid();
+    render();
+  }
+  initPenguin();
 }

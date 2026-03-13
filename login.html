@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login | HQ Kiddo</title>
+    <meta name="description" content="Log in or sign up to save your progress across devices." />
+    <link rel="stylesheet" href="menu.css" />
+    <link rel="stylesheet" href="language-selector.css" />
+    <link rel="stylesheet" href="login.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar topbar-with-nav">
+        <div class="lang-row">
+          <div class="lang-selector">
+            <button type="button" id="langSelectorBtn" class="lang-selector-btn">
+              <span id="langSelectorLabel">English (default)</span>
+              <span class="arrow">▼</span>
+            </button>
+            <div id="langDropdown" class="lang-dropdown" role="listbox">
+              <button type="button" class="lang-dropdown-option" data-lang="en">English (default)</button>
+              <button type="button" class="lang-dropdown-option" data-lang="es">Español</button>
+              <button type="button" class="lang-dropdown-option" data-lang="fr">Français</button>
+            </div>
+          </div>
+          <nav class="topbar-nav">
+            <a id="authNavLink" href="index.html" class="nav-link">← Menu</a>
+          </nav>
+        </div>
+        <div>
+          <p class="eyebrow">HQ Kiddo</p>
+          <a class="back-link" href="index.html">← Menu</a>
+          <h1>Account</h1>
+          <p class="subtitle">Log in or create an account to sync your progress.</p>
+        </div>
+      </header>
+
+      <div id="loginFlow" class="login-flow">
+        <div class="step-indicator">
+          <span class="step-dot active" data-step="1">1</span>
+          <span class="step-line"></span>
+          <span class="step-dot" data-step="2">2</span>
+          <span class="step-line"></span>
+          <span class="step-dot" data-step="3">3</span>
+          <span class="step-line"></span>
+          <span class="step-dot" data-step="4">4</span>
+        </div>
+
+        <div id="step1" class="step-panel active">
+          <h2>Step 1</h2>
+          <p class="step-desc">Log in or sign up</p>
+          <div class="step-choices">
+            <button type="button" class="choice-btn" data-mode="login">Log in</button>
+            <button type="button" class="choice-btn primary" data-mode="signup">Sign up</button>
+          </div>
+        </div>
+
+        <div id="step2" class="step-panel">
+          <h2>Step 2</h2>
+          <p class="step-desc">Your email for recovery (just in case)</p>
+          <form id="step2Form" class="step-form">
+            <input id="step2Email" type="email" placeholder="you@example.com" required autocomplete="email" />
+            <button type="submit" class="primary">Next</button>
+          </form>
+        </div>
+
+        <div id="step3" class="step-panel">
+          <h2>Step 3</h2>
+          <p class="step-desc">Username</p>
+          <div id="step3Login" class="step-form" style="display: none;">
+            <p id="step3ConfirmEmail" class="confirm-email"></p>
+            <button type="button" id="step3NextBtn" class="primary">Next</button>
+          </div>
+          <form id="step3Form" class="step-form">
+            <input id="step3Username" type="text" placeholder="Choose a username" required autocomplete="username" />
+            <button type="submit" class="primary">Next</button>
+          </form>
+        </div>
+
+        <div id="step4" class="step-panel">
+          <h2>Step 4</h2>
+          <p class="step-desc">Password must have at least 8 characters</p>
+          <form id="step4Form" class="step-form">
+            <input id="step4Password" type="password" placeholder="At least 8 characters" required minlength="8" autocomplete="current-password" />
+            <button type="submit" class="primary">Finish</button>
+          </form>
+        </div>
+
+        <p id="loginError" class="login-error"></p>
+      </div>
+
+      <footer class="footer">
+        <p>© 2026 Hayley H</p>
+      </footer>
+    </div>
+
+    <script>
+      const storageKey = "hqkiddo-menu-bg";
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        document.documentElement.style.backgroundColor = saved;
+        document.body.style.backgroundColor = saved;
+      }
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="i18n.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="db.js"></script>
+    <script src="login.js"></script>
+  </body>
+</html>

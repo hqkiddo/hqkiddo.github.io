@@ -9,34 +9,38 @@
       content="Choose an app: Magnifying Quest, Penguin Miner, or Handwritten Notes."
     />
     <link rel="stylesheet" href="menu.css" />
+    <link rel="stylesheet" href="language-selector.css" />
     <link rel="icon" href="data:," />
   </head>
   <body>
     <div class="app">
-      <header class="topbar">
+      <header class="topbar topbar-with-nav">
+        <div class="lang-row">
+          <div class="lang-selector">
+            <button type="button" id="langSelectorBtn" class="lang-selector-btn" aria-haspopup="listbox" aria-expanded="false">
+              <span id="langSelectorLabel">English (default)</span>
+              <span class="arrow">▼</span>
+            </button>
+            <div id="langDropdown" class="lang-dropdown" role="listbox">
+              <button type="button" class="lang-dropdown-option" data-lang="en">English (default)</button>
+              <button type="button" class="lang-dropdown-option" data-lang="es">Español</button>
+              <button type="button" class="lang-dropdown-option" data-lang="fr">Français</button>
+            </div>
+          </div>
+          <nav class="topbar-nav">
+            <a id="authNavLink" href="login.html" class="nav-link">Login</a>
+          </nav>
+        </div>
         <div>
           <p class="eyebrow">HQ Kiddo</p>
-          <h1>Menu</h1>
-          <p class="subtitle">Pick an app to use.</p>
+          <h1 data-i18n="menu">Menu</h1>
+          <p class="subtitle" data-i18n="pickApp">Pick an app to use.</p>
         </div>
       </header>
 
-      <section id="authSection" class="auth-section" style="display: none;">
-        <p class="label">Account</p>
-        <div id="authLoggedOut" class="auth-row">
-          <button id="authLoginBtn" class="ghost">Log in</button>
-          <button id="authSignupBtn" class="primary">Sign up</button>
-        </div>
-        <div id="authLoggedIn" class="auth-row" style="display: none;">
-          <span id="authUserEmail" class="auth-email"></span>
-          <button id="authLogoutBtn" class="ghost">Log out</button>
-        </div>
-        <p class="auth-hint">Log in to save your progress across devices.</p>
-      </section>
-
       <section class="theme-controls">
         <div>
-          <p class="label">Background Color</p>
+          <p class="label" data-i18n="bgColor">Background Color</p>
           <div class="theme-row">
             <input
               id="bgColorPicker"
@@ -45,30 +49,30 @@
               value="#0f1118"
               aria-label="Pick background color"
             />
-            <button class="ghost" data-bg="#0f1118">Night</button>
-            <button class="ghost" data-bg="#102a43">Ocean</button>
-            <button class="ghost" data-bg="#2a1f3d">Purple</button>
-            <button class="ghost" data-bg="#1b3a2b">Forest</button>
-            <button class="ghost" data-bg="#3b2a1b">Desert</button>
+            <button class="ghost" data-bg="#0f1118" data-i18n="night">Night</button>
+            <button class="ghost" data-bg="#102a43" data-i18n="ocean">Ocean</button>
+            <button class="ghost" data-bg="#2a1f3d" data-i18n="purple">Purple</button>
+            <button class="ghost" data-bg="#1b3a2b" data-i18n="forest">Forest</button>
+            <button class="ghost" data-bg="#3b2a1b" data-i18n="desert">Desert</button>
           </div>
         </div>
       </section>
 
       <section class="menu-grid">
         <a class="menu-card" href="magnifying.html">
-          <h2>Magnifying Quest</h2>
-          <p>Find hidden objects with your magnifier and earn gems.</p>
-          <span class="menu-action">Play</span>
+          <h2 data-i18n="magnifyingQuest">Magnifying Quest</h2>
+          <p data-i18n="magnifyingDesc">Find hidden objects with your magnifier and earn gems.</p>
+          <span class="menu-action" data-i18n="play">Play</span>
         </a>
         <a class="menu-card" href="penguin.html">
-          <h2>Penguin Miner</h2>
-          <p>Mine gold, sell it, upgrade your pickaxe, and find fish.</p>
-          <span class="menu-action">Play</span>
+          <h2 data-i18n="penguinMiner">Penguin Miner</h2>
+          <p data-i18n="penguinDesc">Mine gold, sell it, upgrade your pickaxe, and find fish.</p>
+          <span class="menu-action" data-i18n="play">Play</span>
         </a>
         <a class="menu-card" href="notes.html">
-          <h2>Handwritten Notes</h2>
-          <p>Snap photos of your notes and keep them all in one searchable place.</p>
-          <span class="menu-action">Open</span>
+          <h2 data-i18n="handwrittenNotes">Handwritten Notes</h2>
+          <p data-i18n="notesDesc">Snap photos of your notes and keep them all in one searchable place.</p>
+          <span class="menu-action" data-i18n="open">Open</span>
         </a>
       </section>
 
@@ -77,26 +81,7 @@
       </footer>
     </div>
 
-    <div id="authModal" class="modal" aria-hidden="true">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3 id="authTitle">Log in</h3>
-          <button id="closeAuthBtn" class="ghost">Close</button>
-        </div>
-        <form id="authForm">
-          <label for="authEmail" class="auth-label">Email</label>
-          <input id="authEmail" type="email" placeholder="you@example.com" required autocomplete="email" />
-          <label for="authPassword" class="auth-label">Password</label>
-          <input id="authPassword" type="password" placeholder="At least 6 characters" required minlength="6" autocomplete="current-password" />
-          <p id="authError" class="auth-error"></p>
-          <button type="submit" id="authSubmitBtn" class="primary">Log in</button>
-        </form>
-        <p class="auth-toggle">
-          <button type="button" id="authToggle" class="auth-toggle-btn">Don't have an account? <strong>Sign up</strong></button>
-        </p>
-      </div>
-    </div>
-
+    <script src="i18n.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>

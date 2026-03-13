@@ -38,6 +38,24 @@ button {
   margin-bottom: 24px;
 }
 
+.topbar-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-nav .nav-link {
+  color: #fe7a57;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.topbar-nav .nav-link:hover,
+.topbar-nav .nav-link:focus {
+  text-decoration: underline;
+}
+
 .topbar h1 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);

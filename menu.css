@@ -37,6 +37,33 @@ input {
   color: inherit;
 }
 
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.topbar-with-nav .topbar-nav {
+  flex-shrink: 0;
+}
+
+.topbar-nav {
+  margin-top: 4px;
+}
+
+.nav-link {
+  color: #fe7a57;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+  text-decoration: underline;
+}
+
 .topbar h1 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);

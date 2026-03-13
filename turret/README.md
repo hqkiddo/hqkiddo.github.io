@@ -6,16 +6,29 @@ This project lets you build and upload code to the **CrunchLabs IR Turret** (Ard
 
 - **Board:** Arduino Nano clone (ATmega328). Often uses a **CH340** USB chip.
 - **Pins:** YAW servo = 10, PITCH servo = 11, ROLL servo = 12, IR receiver = 9.
-- **Optional add-ons:** LED on pin 6 (with 220Ω resistor to GND), piezo buzzer on pin 7 (to GND). Flash + pew when firing!
+- **Optional add-ons:** LED on pin 6 (with 220Ω resistor to GND). LED on D3 blinks when you press 0.
 
-### LED + Buzzer wiring
+### LED wiring
 
 | Part | Wiring |
 |------|--------|
-| **LED** | Pin 6 → 220Ω resistor → LED long leg (+) → LED short leg (−) → GND |
-| **Buzzer** | Pin 7 → buzzer + (red) → buzzer − (black) → GND |
+| **LED (pin 6)** | Pin 6 → 220Ω resistor → LED long leg (+) → LED short leg (−) → GND |
+| **LED (D3)** | Pin 3 → 220Ω resistor → LED long leg (+) → LED short leg (−) → GND |
 
-Works without them too – the code just won't flash or beep.
+Works without them too – the code just won't flash.
+
+### Mobile base (L298N motor driver)
+
+Add a wheeled base so the turret can drive around. You need: L298N motor driver, 2 DC motors, wheels, chassis, and a battery pack (6–12V for motors).
+
+| Arduino Pin | L298N Pin |
+|-------------|-----------|
+| D2 | IN1 |
+| D8 | IN2 |
+| D13 | IN3 |
+| A0 | IN4 |
+
+Connect L298N **OUT1, OUT2** to left motor; **OUT3, OUT4** to right motor. Power motors from a separate battery (not USB). **2**=forward, **8**=backward, **4**=left, **6**=right.
 
 ## 1. Install tooling (run these in your own terminal)
 
@@ -104,13 +117,14 @@ Remote mapping (NEC codes in code):
 | Arrows | Aim (up/down/left/right) |
 | OK | Fire one |
 | * | Fire all |
-| 0 | Shake head no |
+| 0 | Siren mode (LEDs + buzzer). Press 0 again to stop |
 | 1 | **Find Remote** – slowly scans; fires when IR detected |
-| 2 | **Guard mode** – patrols; alerts (fire + dance) on IR |
-| 3 | **Speed toggle** – faster/slower movement |
-| 4 | **Burst fire** – 3 rapid shots |
+| 2 | **Drive forward** (mobile base) |
+| 3 | **Speed toggle** – faster/slower turret movement |
+| 4 | **Drive left** (mobile base) |
 | 5 | Turret dance |
-| 6 | **Disco dance** – strobe-style routine |
+| 6 | **Drive right** (mobile base) |
+| 8 | **Drive backward** (mobile base) |
 | 7 | Shoot around randomly |
 | 9 | Shake head yes |
 | # | Chip temp (Serial); if hot or **double-press** → overheat drama |

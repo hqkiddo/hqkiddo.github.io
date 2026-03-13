@@ -200,7 +200,8 @@
 
   function renderNotes() {
     const filtered = filterNotes();
-    noteCount.textContent = filtered.length + " note" + (filtered.length !== 1 ? "s" : "");
+    const noteWord = window.HQi18n ? (filtered.length !== 1 ? HQi18n.t("notes") : HQi18n.t("note")) : (filtered.length !== 1 ? "notes" : "note");
+    noteCount.textContent = filtered.length + " " + noteWord;
 
     if (notes.length === 0) {
       emptyState.classList.remove("hidden");
@@ -211,7 +212,7 @@
     emptyState.classList.add("hidden");
 
     if (filtered.length === 0) {
-      notesList.innerHTML = '<p class="empty-state">No notes match your search.</p>';
+      notesList.innerHTML = '<p class="empty-state">' + (window.HQi18n ? HQi18n.t("noMatch") : "No notes match your search.") + '</p>';
       return;
     }
 
@@ -259,6 +260,7 @@
     } else {
       loadNotes();
     }
+    if (window.HQi18n) HQi18n.onChange = renderNotes;
   }
   init();
 })();

@@ -9,32 +9,49 @@
       content="Capture handwritten notes with your camera and keep them all in one place."
     />
     <link rel="stylesheet" href="notes.css" />
+    <link rel="stylesheet" href="language-selector.css" />
     <link rel="icon" href="data:," />
   </head>
   <body>
     <div class="app">
-      <header class="topbar">
+      <header class="topbar topbar-with-nav">
+        <div class="lang-row">
+          <div class="lang-selector">
+            <button type="button" id="langSelectorBtn" class="lang-selector-btn">
+              <span id="langSelectorLabel">English (default)</span>
+              <span class="arrow">▼</span>
+            </button>
+            <div id="langDropdown" class="lang-dropdown" role="listbox">
+              <button type="button" class="lang-dropdown-option" data-lang="en">English (default)</button>
+              <button type="button" class="lang-dropdown-option" data-lang="es">Español</button>
+              <button type="button" class="lang-dropdown-option" data-lang="fr">Français</button>
+            </div>
+          </div>
+          <nav class="topbar-nav">
+            <a id="authNavLink" href="login.html" class="nav-link">Login</a>
+          </nav>
+        </div>
         <div>
           <p class="eyebrow">HQ Kiddo</p>
-          <a class="back-link" href="index.html">← Menu</a>
-          <h1>Handwritten Notes</h1>
-          <p class="subtitle">Take a photo of your notes and they’ll be saved and searchable here.</p>
+          <a class="back-link" href="index.html" data-i18n="backMenu">← Menu</a>
+          <h1 data-i18n="handwrittenNotes">Handwritten Notes</h1>
+          <p class="subtitle" data-i18n="notesDesc">Take a photo of your notes and they’ll be saved and searchable here.</p>
         </div>
       </header>
 
       <section class="capture-section">
         <div class="capture-card">
-          <p class="label">Add a note</p>
-          <h2>Snap your handwritten notes</h2>
-          <p class="capture-subtext">
+          <p class="label" data-i18n="addNote">Add a note</p>
+          <h2 data-i18n="snapNotes">Snap your handwritten notes</h2>
+          <p class="capture-subtext" data-i18n="snapNotesDesc">
             Use your camera or pick a photo. The app will read your handwriting and save it.
           </p>
           <div class="capture-buttons">
             <button id="cameraBtn" class="primary">
-              <span class="btn-icon">📷</span> Camera
+              <span class="btn-icon">📷</span> <span data-i18n="camera">Camera</span>
             </button>
             <button id="uploadBtn" class="ghost">
-              <span class="btn-icon">📁</span> Choose photo
+              <span class="btn-icon">📁</span> <span data-i18n="choosePhoto">Choose photo</span>
             </button>
           </div>
           <input
@@ -70,10 +87,11 @@
       </section>
 
       <section class="search-section">
-        <label for="searchInput" class="label">Search notes</label>
+        <label for="searchInput" class="label" data-i18n="searchNotes">Search notes</label>
         <input
           id="searchInput"
           type="search"
+          data-i18n="searchPlaceholder"
           placeholder="Search by text or date…"
           aria-label="Search notes"
         />
@@ -81,15 +99,15 @@
 
       <section class="notes-section">
         <div class="notes-header">
-          <h2>Your notes</h2>
+          <h2 data-i18n="yourNotes">Your notes</h2>
           <span id="noteCount" class="note-count">0 notes</span>
         </div>
         <div id="notesList" class="notes-list">
           <!-- Notes rendered by JS -->
         </div>
         <div id="emptyState" class="empty-state">
-          <p>No notes yet.</p>
-          <p>Take a photo of your handwritten notes to get started.</p>
+          <p data-i18n="noNotes">No notes yet.</p>
+          <p data-i18n="noNotesHint">Take a photo of your handwritten notes to get started.</p>
         </div>
       </section>
 
@@ -106,6 +124,7 @@
         document.body.style.backgroundColor = saved;
       }
     </script>
+    <script src="i18n.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>

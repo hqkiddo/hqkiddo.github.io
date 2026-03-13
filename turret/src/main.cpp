@@ -4,8 +4,10 @@
  *
  * ADD-ONS (optional – wire to use):
  *   LED: pin 6 → 220Ω resistor → LED → GND (flashes when firing)
- *   Buzzer: pin 7 → buzzer → GND (pew sound when firing)
- *   LED on D3: blinks when you press 0 on the remote
+ *   3 LEDs on D3, D4, D5: press 0 = siren mode (40-60 cpm, LEDs alternate). Press 0 again to stop.
+ *   Buzzer: pin 7 (D7) → buzzer + → buzzer − → GND
+ *
+ * MOBILE BASE (optional): L298N motor driver. Pins 2,8,13,A0. Buttons: 2=forward, 8=back, 4=left, 6=right.
  *
  * CONTEST UPGRADES:
  * - Find Remote mode (1): slowly scans, fires when it detects IR
@@ -27,7 +29,15 @@
 
 #define PIN_LED    6
 #define PIN_BUZZER 7
-#define PIN_LED_D3 3   // Blinks when you press 0
+#define PIN_LED_1  3   // 3 LEDs sequential blink when you press 0
+#define PIN_LED_2  4
+#define PIN_LED_3  5
+
+// Mobile base – L298N motor driver (IN1,IN2=left motor, IN3,IN4=right motor)
+#define PIN_M1_A   2
+#define PIN_M1_B   8
+#define PIN_M2_A   13
+#define PIN_M2_B   A0
 
 // Remote button codes (NEC). Add more from Serial output if you use another remote.
 #define CMD_LEFT   0x8
@@ -45,6 +55,7 @@
 #define CMD_5      0x40
 #define CMD_6      0x43   // Disco dance
 #define CMD_7      0x7
+#define CMD_8      0x42   // Toggle drive mode (mobile base) – update if your remote uses different code
 #define CMD_9      0x9
 
 // Servos
@@ -64,7 +75,7 @@ int pitchMax = 175;
 int pitchMin = 10;
 
 // Contest upgrade modes
-enum Mode { MODE_NORMAL, MODE_FIND_REMOTE, MODE_GUARD };
+enum Mode { MODE_NORMAL, MODE_FIND_REMOTE, MODE_GUARD, MODE_SIREN };
 Mode currentMode = MODE_NORMAL;
 bool fastMode = false;
 unsigned long lastModeStep = 0;
@@ -72,6 +83,10 @@ unsigned long lastHashPress = 0;
 int findRemoteAngle = 90;
 int guardAngle = 90;
 int guardDirection = 1;
+bool sirenHighPhase = true;
+unsigned long sirenPhaseStart = 0;
+unsigned long sirenLedStart = 0;
+int sirenLedIndex = 0;
 
 void homeServos();
 void fire();
@@ -91,7 +106,15 @@ int readChipTempC();  // ATmega328P internal temp (chip, not room)
 void reportChipTemp();
 void findRemoteStep();
 void guardStep();
-void fireFX();  // LED flash + pew sound (when wired)
+void fireFX();  // LED flash when firing
+void sirenBuzz(int ms);  // Police siren buzz - avoids tone()/IRremote conflict
+void sirenBuzzChunk(bool highPitch, int ms);
+void sirenStep();
+void driveForward();
+void driveBackward();
+void driveLeft();
+void driveRight();
+void driveStop();
 
 void setup() {
   Serial.begin(9600);
@@ -104,12 +127,21 @@ void setup() {
 
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_BUZZER, OUTPUT);
-  pinMode(PIN_LED_D3, OUTPUT);
+  pinMode(PIN_LED_1, OUTPUT);
+  pinMode(PIN_LED_2, OUTPUT);
+  pinMode(PIN_LED_3, OUTPUT);
+  pinMode(PIN_M1_A, OUTPUT);
+  pinMode(PIN_M1_B, OUTPUT);
+  pinMode(PIN_M2_A, OUTPUT);
+  pinMode(PIN_M2_B, OUTPUT);
   digitalWrite(PIN_LED, LOW);
+  driveStop();
   digitalWrite(PIN_BUZZER, LOW);
-  digitalWrite(PIN_LED_D3, LOW);
+  digitalWrite(PIN_LED_1, LOW);
+  digitalWrite(PIN_LED_2, LOW);
+  digitalWrite(PIN_LED_3, LOW);
 
-  Serial.println(F("CrunchLabs Turret ready. IR at pin 9. LED=6, Buzzer=7, LED_D3=3."));
+  Serial.println(F("CrunchLabs Turret ready. LED=6, Buzzer=D7, LEDs=D3,D4,D5."));
   homeServos();
 }
 
@@ -121,6 +153,10 @@ void loop() {
   }
   if (currentMode == MODE_GUARD) {
     guardStep();
+    return;
+  }
+  if (currentMode == MODE_SIREN) {
+    sirenStep();
     return;
   }
 
@@ -147,23 +183,22 @@ void loop() {
     case CMD_OK:    fire(); break;
     case CMD_STAR:  fireAll(); delay(50); break;
     case CMD_0:     {
-      for (int i = 0; i < 5; i++) {
-        digitalWrite(PIN_LED_D3, HIGH);
-        delay(80);
-        digitalWrite(PIN_LED_D3, LOW);
-        delay(80);
-      }
-      shakeHeadNo(3);
-      delay(50);
+        currentMode = MODE_SIREN;
+        sirenHighPhase = true;
+        sirenPhaseStart = millis();
+        sirenLedStart = millis();
+        sirenLedIndex = 0;
+      Serial.println(F("Siren ON – press 0 to stop"));
       break;
     }
     case CMD_1:     currentMode = MODE_FIND_REMOTE; findRemoteAngle = 90; Serial.println(F("FIND REMOTE – scanning...")); break;
-    case CMD_2:     currentMode = MODE_GUARD; guardAngle = 90; guardDirection = 1; Serial.println(F("GUARD – patrolling...")); break;
+    case CMD_2:     driveForward(); delay(200); driveStop(); break;
     case CMD_3:     fastMode = !fastMode; Serial.print(F("Speed: ")); Serial.println(fastMode ? F("FAST") : F("normal")); break;
-    case CMD_4:     burstFire(); delay(50); break;
+    case CMD_4:     driveLeft(); delay(200); driveStop(); break;
     case CMD_5:     turretDance(); delay(50); break;
-    case CMD_6:     discoDance(); delay(50); break;
+    case CMD_6:     driveRight(); delay(200); driveStop(); break;
     case CMD_7:     shootAroundRandomly(); break;
+    case CMD_8:     driveBackward(); delay(200); driveStop(); break;
     case CMD_9:     shakeHeadYes(3); delay(50); break;
     case CMD_HASH:  {
       unsigned long now = millis();
@@ -230,10 +265,65 @@ void downMove(int moves) {
 
 void fireFX() {
   digitalWrite(PIN_LED, HIGH);
-  tone(PIN_BUZZER, 1800, 35);
-  delay(35);
+  delay(50);
   digitalWrite(PIN_LED, LOW);
-  noTone(PIN_BUZZER);
+}
+
+// Police siren - really high then really low (no tone() - avoids IRremote conflict)
+void sirenBuzz(int ms) {
+  unsigned long endTime = millis() + ms;
+  while (millis() < endTime) {
+    sirenBuzzChunk(true, 25);
+    if (millis() >= endTime) break;
+    sirenBuzzChunk(false, 25);
+  }
+}
+
+void sirenBuzzChunk(bool highPitch, int ms) {
+  unsigned long endTime = millis() + ms;
+  // 950 Hz = 526µs per half-cycle, 1150 Hz = 435µs per half-cycle
+  int delayUs = highPitch ? 435 : 526;
+  while (millis() < endTime) {
+    digitalWrite(PIN_BUZZER, HIGH);
+    delayMicroseconds(delayUs);
+    digitalWrite(PIN_BUZZER, LOW);
+    delayMicroseconds(delayUs);
+  }
+}
+
+void sirenStep() {
+  // Check for IR - press 0 to stop
+  if (IrReceiver.decode()) {
+    if (IrReceiver.decodedIRData.command == CMD_0) {
+      currentMode = MODE_NORMAL;
+      digitalWrite(PIN_LED_1, LOW);
+      digitalWrite(PIN_LED_2, LOW);
+      digitalWrite(PIN_LED_3, LOW);
+      IrReceiver.resume();
+      Serial.println(F("Siren OFF"));
+      return;
+    }
+    IrReceiver.resume();
+  }
+
+  unsigned long now = millis();
+  // 50 cycles/min = 1.2s per cycle → 600ms high, 600ms low
+  int phaseDuration = sirenHighPhase ? 600 : 600;
+  if (now - sirenPhaseStart >= (unsigned long)phaseDuration) {
+    sirenHighPhase = !sirenHighPhase;
+    sirenPhaseStart = now;
+  }
+  // LEDs switch fast (every 80ms)
+  if (now - sirenLedStart >= 80) {
+    sirenLedIndex = (sirenLedIndex + 1) % 3;
+    sirenLedStart = now;
+  }
+
+  digitalWrite(PIN_LED_1, sirenLedIndex == 0 ? HIGH : LOW);
+  digitalWrite(PIN_LED_2, sirenLedIndex == 1 ? HIGH : LOW);
+  digitalWrite(PIN_LED_3, sirenLedIndex == 2 ? HIGH : LOW);
+
+  sirenBuzzChunk(sirenHighPhase, 10);
 }
 
 void fire() {
@@ -345,6 +435,38 @@ void homeServos() {
   delay(100);
   pitchServoVal = 100;
   Serial.println("HOMING");
+}
+
+// --- Mobile base: L298N motor control ---
+void driveStop() {
+  digitalWrite(PIN_M1_A, LOW);
+  digitalWrite(PIN_M1_B, LOW);
+  digitalWrite(PIN_M2_A, LOW);
+  digitalWrite(PIN_M2_B, LOW);
+}
+void driveForward() {
+  digitalWrite(PIN_M1_A, HIGH);
+  digitalWrite(PIN_M1_B, LOW);
+  digitalWrite(PIN_M2_A, HIGH);
+  digitalWrite(PIN_M2_B, LOW);
+}
+void driveBackward() {
+  digitalWrite(PIN_M1_A, LOW);
+  digitalWrite(PIN_M1_B, HIGH);
+  digitalWrite(PIN_M2_A, LOW);
+  digitalWrite(PIN_M2_B, HIGH);
+}
+void driveLeft() {
+  digitalWrite(PIN_M1_A, LOW);
+  digitalWrite(PIN_M1_B, HIGH);
+  digitalWrite(PIN_M2_A, HIGH);
+  digitalWrite(PIN_M2_B, LOW);
+}
+void driveRight() {
+  digitalWrite(PIN_M1_A, HIGH);
+  digitalWrite(PIN_M1_B, LOW);
+  digitalWrite(PIN_M2_A, LOW);
+  digitalWrite(PIN_M2_B, HIGH);
 }
 
 // --- Contest upgrade: Find Remote mode ---

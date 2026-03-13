@@ -9,17 +9,35 @@
       content="Find hidden objects with a magnifying glass."
     />
     <link rel="stylesheet" href="magnifying.css" />
+    <link rel="stylesheet" href="language-selector.css" />
     <link rel="icon" href="data:," />
   </head>
   <body>
     <div class="app">
-      <header class="topbar">
+      <header class="topbar topbar-with-nav">
         <div>
+          <div class="lang-row">
+            <div class="lang-selector">
+              <button type="button" id="langSelectorBtn" class="lang-selector-btn">
+                <span id="langSelectorLabel">English (default)</span>
+                <span class="arrow">▼</span>
+              </button>
+              <div id="langDropdown" class="lang-dropdown" role="listbox">
+                <button type="button" class="lang-dropdown-option" data-lang="en">English (default)</button>
+                <button type="button" class="lang-dropdown-option" data-lang="es">Español</button>
+                <button type="button" class="lang-dropdown-option" data-lang="fr">Français</button>
+              </div>
+            </div>
+          </div>
           <p class="eyebrow">HQ Kiddo</p>
-          <a class="back-link" href="index.html">← Menu</a>
-          <h1>Magnifying Quest</h1>
+          <a class="back-link" href="index.html" data-i18n="backMenu">← Menu</a>
+          <h1 data-i18n="magnifyingQuest">Magnifying Quest</h1>
         </div>
-        <div class="stats">
+        <div class="topbar-right">
+          <nav class="topbar-nav">
+            <a id="authNavLink" href="login.html" class="nav-link">Login</a>
+          </nav>
+          <div class="stats">
           <div>
             <span class="label">Time</span>
             <span id="timeLeft">--</span>
@@ -45,6 +63,7 @@
             <span class="label">Items Found</span>
             <span id="foundCount">0</span>
           </div>
+        </div>
         </div>
       </header>
 
@@ -195,6 +214,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="i18n.js"></script>
     <script src="firebase-config.js"></script>
     <script src="auth.js"></script>
     <script src="db.js"></script>

@@ -1,0 +1,69 @@
+.lang-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.lang-selector {
+  position: relative;
+}
+
+.lang-selector-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f6fb;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.lang-selector-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lang-selector-btn .arrow {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.lang-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 160px;
+  background: #141824;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 6px 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+  display: none;
+}
+
+.lang-dropdown.open {
+  display: block;
+}
+
+.lang-dropdown-option {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  color: #f5f6fb;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lang-dropdown-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}

@@ -1,24 +1,5 @@
-const canvas = document.getElementById("mineCanvas");
-const ctx = canvas ? canvas.getContext("2d") : null;
-
-const levelValue = document.getElementById("levelValue");
-const ironValue = document.getElementById("ironValue");
-const silverValue = document.getElementById("silverValue");
-const goldValue = document.getElementById("goldValue");
-const crystalValue = document.getElementById("crystalValue");
-const fishValue = document.getElementById("fishValue");
-const pickaxeValue = document.getElementById("pickaxeValue");
-const statusMessage = document.getElementById("statusMessage");
-const startBtn = document.getElementById("startBtn");
-const openShopBtn = document.getElementById("openShopBtn");
-const shopModal = document.getElementById("shopModal");
-const closeShopBtn = document.getElementById("closeShopBtn");
-const shopList = document.getElementById("shopList");
-
-if (!canvas || !ctx || !startBtn || !statusMessage) {
-  // Required elements missing; avoid crashing the page.
-  console.warn("Penguin Miner: missing required elements.");
-}
+let canvas, ctx, levelValue, ironValue, silverValue, goldValue, crystalValue, fishValue, pickaxeValue;
+let statusMessage, startBtn, openShopBtn, shopModal, closeShopBtn, shopList;
 
 const grid = {
   cols: 10,
@@ -238,7 +219,7 @@ let materials = { iron: 0, silver: 0, gold: 0, crystal: 0 };
 let fishFound = 0;
 let pickaxeLevel = 0;
 let running = false;
-let penguin = { x: 90, y: canvas.height - 90 };
+let penguin = { x: 90, y: 450 };
 let penguinTarget = null;
 let pendingMineIndex = null;
 let currentTheme = levelThemes[0];
@@ -326,7 +307,7 @@ async function loadPenguinState() {
 }
 
 function setStatus(message) {
-  statusMessage.textContent = message;
+  if (statusMessage) statusMessage.textContent = message;
 }
 
 function getGoldGain() {
@@ -334,15 +315,14 @@ function getGoldGain() {
 }
 
 function updateUI() {
-  levelValue.textContent = level.toString();
-  ironValue.textContent = materials.iron.toString();
-  silverValue.textContent = materials.silver.toString();
-  goldValue.textContent = materials.gold.toString();
-  crystalValue.textContent = materials.crystal.toString();
-  fishValue.textContent = fishFound.toString();
-  pickaxeValue.textContent = pickaxeTiers[pickaxeLevel].name;
-
-  startBtn.textContent = running ? "Restart" : "Start Mining";
+  if (levelValue) levelValue.textContent = level.toString();
+  if (ironValue) ironValue.textContent = materials.iron.toString();
+  if (silverValue) silverValue.textContent = materials.silver.toString();
+  if (goldValue) goldValue.textContent = materials.gold.toString();
+  if (crystalValue) crystalValue.textContent = materials.crystal.toString();
+  if (fishValue) fishValue.textContent = fishFound.toString();
+  if (pickaxeValue) pickaxeValue.textContent = pickaxeTiers[pickaxeLevel].name;
+  if (startBtn) startBtn.textContent = running ? "Restart" : "Start Mining";
 }
 
 function createTile(type) {
@@ -999,7 +979,27 @@ function render() {
   requestAnimationFrame(render);
 }
 
-if (canvas && ctx && startBtn && statusMessage) {
+function initGame() {
+  canvas = document.getElementById("mineCanvas");
+  ctx = canvas ? canvas.getContext("2d") : null;
+  levelValue = document.getElementById("levelValue");
+  ironValue = document.getElementById("ironValue");
+  silverValue = document.getElementById("silverValue");
+  goldValue = document.getElementById("goldValue");
+  crystalValue = document.getElementById("crystalValue");
+  fishValue = document.getElementById("fishValue");
+  pickaxeValue = document.getElementById("pickaxeValue");
+  statusMessage = document.getElementById("statusMessage");
+  startBtn = document.getElementById("startBtn");
+  openShopBtn = document.getElementById("openShopBtn");
+  shopModal = document.getElementById("shopModal");
+  closeShopBtn = document.getElementById("closeShopBtn");
+  shopList = document.getElementById("shopList");
+
+  if (!canvas || !ctx || !startBtn || !statusMessage) {
+    console.warn("Penguin Miner: missing required elements.");
+    return;
+  }
   canvas.addEventListener("click", handleClick);
   startBtn.addEventListener("click", resetGame);
   if (openShopBtn) {
@@ -1020,7 +1020,7 @@ if (canvas && ctx && startBtn && statusMessage) {
   render();
 
   function doLoad() {
-    loadPenguinState().then(() => {
+    loadPenguinState().catch(() => {}).then(() => {
       if (tiles.length === 0) createIdleGrid();
     });
   }
@@ -1033,4 +1033,10 @@ if (canvas && ctx && startBtn && statusMessage) {
   } else {
     doLoad();
   }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initGame);
+} else {
+  initGame();
 }

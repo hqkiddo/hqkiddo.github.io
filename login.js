@@ -3,7 +3,7 @@
 
   if (!window.FIREBASE_ENABLED || typeof firebase === "undefined") {
     document.getElementById("loginFlow").innerHTML =
-      '<p class="login-error">Firebase is not configured. See FIREBASE_SETUP.md to enable login.</p>';
+      '<p class="login-error">Firebase is not configured. <a href="FIREBASE_SETUP.md" class="nav-link">See setup instructions</a> to enable login and cloud sync.</p>';
     return;
   }
 

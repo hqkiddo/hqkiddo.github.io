@@ -13,7 +13,7 @@
       menu: "Menu",
       pickApp: "Pick an app to use.",
       bgColor: "Background Color",
-      changeBg: "Change Background color",
+      changeBg: "Change background color",
       night: "Night",
       ocean: "Ocean",
       purple: "Purple",

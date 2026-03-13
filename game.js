@@ -1016,19 +1016,21 @@ if (canvas && ctx && startBtn && statusMessage) {
     });
   }
 
-  async function initPenguin() {
-    if (window.FIREBASE_ENABLED && typeof firebase !== "undefined") {
-      await new Promise((resolve) => {
-        firebase.auth().onAuthStateChanged(async () => {
-          await loadPenguinState();
-          resolve();
-        });
-      });
-    } else {
-      await loadPenguinState();
-    }
-    if (tiles.length === 0) createIdleGrid();
-    render();
+  if (tiles.length === 0) createIdleGrid();
+  render();
+
+  function doLoad() {
+    loadPenguinState().then(() => {
+      if (tiles.length === 0) createIdleGrid();
+    });
   }
-  initPenguin();
+  if (window.FIREBASE_ENABLED && typeof firebase !== "undefined") {
+    try {
+      firebase.auth().onAuthStateChanged(doLoad);
+    } catch (e) {
+      doLoad();
+    }
+  } else {
+    doLoad();
+  }
 }

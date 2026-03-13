@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Handwritten Notes</title>
+    <meta
+      name="description"
+      content="Capture handwritten notes with your camera and keep them all in one place."
+    />
+    <link rel="stylesheet" href="notes.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">HQ Kiddo</p>
+          <a class="back-link" href="index.html">← Menu</a>
+          <h1>Handwritten Notes</h1>
+          <p class="subtitle">Take a photo of your notes and they’ll be saved and searchable here.</p>
+        </div>
+      </header>
+
+      <section class="capture-section">
+        <div class="capture-card">
+          <p class="label">Add a note</p>
+          <h2>Snap your handwritten notes</h2>
+          <p class="capture-subtext">
+            Use your camera or pick a photo. The app will read your handwriting and save it.
+          </p>
+          <div class="capture-buttons">
+            <button id="cameraBtn" class="primary">
+              <span class="btn-icon">📷</span> Camera
+            </button>
+            <button id="uploadBtn" class="ghost">
+              <span class="btn-icon">📁</span> Choose photo
+            </button>
+          </div>
+          <input
+            id="fileInput"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            aria-label="Choose photo"
+            hidden
+          />
+        </div>
+
+        <div id="cameraModal" class="modal" aria-hidden="true">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>Take a photo</h3>
+              <button id="closeCameraBtn" class="ghost">Close</button>
+            </div>
+            <div class="camera-preview-wrap">
+              <video id="cameraVideo" autoplay playsinline muted></video>
+              <canvas id="cameraCanvas" hidden></canvas>
+            </div>
+            <button id="captureBtn" class="primary">Capture</button>
+          </div>
+        </div>
+
+        <div id="processingModal" class="modal" aria-hidden="true">
+          <div class="modal-card processing-card">
+            <p class="processing-text">Reading your handwriting…</p>
+            <div class="processing-spinner"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="search-section">
+        <label for="searchInput" class="label">Search notes</label>
+        <input
+          id="searchInput"
+          type="search"
+          placeholder="Search by text or date…"
+          aria-label="Search notes"
+        />
+      </section>
+
+      <section class="notes-section">
+        <div class="notes-header">
+          <h2>Your notes</h2>
+          <span id="noteCount" class="note-count">0 notes</span>
+        </div>
+        <div id="notesList" class="notes-list">
+          <!-- Notes rendered by JS -->
+        </div>
+        <div id="emptyState" class="empty-state">
+          <p>No notes yet.</p>
+          <p>Take a photo of your handwritten notes to get started.</p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>© 2026 Hayley H</p>
+      </footer>
+    </div>
+
+    <script>
+      const storageKey = "hqkiddo-menu-bg";
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        document.documentElement.style.backgroundColor = saved;
+        document.body.style.backgroundColor = saved;
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="notes.js"></script>
+  </body>
+</html>

@@ -1303,8 +1303,24 @@ shapeSelect.addEventListener("change", () => {
   updateUI();
 });
 
+function renderObjectReference() {
+  const list = document.getElementById("objectReferenceList");
+  if (!list) return;
+  list.innerHTML = itemTemplates
+    .map(
+      (item) => `
+    <div class="object-reference-item">
+      <img src="${item.imageUrl}" alt="${item.name}" loading="lazy" />
+      <span>${item.name}</span>
+    </div>
+  `
+    )
+    .join("");
+}
+
 preloadScene(currentScene);
 preloadItemImages();
+renderObjectReference();
 render();
 
 function initMagnifying() {

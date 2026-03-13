@@ -210,6 +210,62 @@ button.ghost {
   display: grid;
   gap: 18px;
   grid-template-columns: 1fr;
+  grid-template-areas: "card" "canvas" "reference";
+}
+
+.board .card {
+  grid-area: card;
+}
+
+.board .canvas-wrap {
+  grid-area: canvas;
+}
+
+.board .object-reference {
+  grid-area: reference;
+}
+
+.object-reference {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.object-reference .label {
+  margin-bottom: 12px;
+}
+
+.object-reference-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.object-reference-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.object-reference-item img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.object-reference-item span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #f5f6fb;
 }
 
 .card {
@@ -341,7 +397,8 @@ canvas {
 
 @media (min-width: 900px) {
   .board {
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 300px 1fr 200px;
+    grid-template-areas: "card canvas reference";
     align-items: start;
   }
 }
